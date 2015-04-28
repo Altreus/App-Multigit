@@ -9,7 +9,8 @@ use Config::Any;
 
 =head1 NAME
 
-App::Multigit - The great new App::Multigit!
+App::Multigit - Run commands on a bunch of git repositories without having to
+deal with git subrepositories.
 
 =head1 VERSION
 
@@ -19,9 +20,27 @@ Version 0.01
 
 our $VERSION = '0.01';
 
+=head1 FUNCTIONS
+
+These are not currently exported.
+
+=head2 mgconfig
+
+Returns C<.mgconfig>. This is a stub to be later configurable, but also
+to stop me typoing it all the time.
+
+=cut
+
 sub mgconfig() {
     return '.mgconfig';
 }
+
+=head2 mg_parent
+
+Tries to find the closest directory with an C<mgconfig> in it. Dies if there is
+no mgconfig here.
+
+=cut
 
 sub mg_parent {
     my $pwd = shift // dir->absolute;
@@ -34,6 +53,15 @@ sub mg_parent {
 
     die "Could not find .mgconfig in any parent directory";
 }
+
+=head2 all_repositories
+
+Returns a hashref of all repositories under C<mg_parent>.
+
+The keys are the repository directories relative to C<mg_parent>, and the values
+are the hashrefs from the config, if any.
+
+=cut
 
 sub all_repositories {
     my $pwd = shift // dir->absolute;
@@ -58,45 +86,7 @@ Alastair McGowan-Douglas, C<< <altreus at perl.org> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-app-multigit at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=App-Multigit>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc App::Multigit
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=App-Multigit>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/App-Multigit>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/App-Multigit>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/App-Multigit/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
-
+Please report bugs on the github repository L<https://github.com/Altreus/App-Multigit>.
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -137,7 +127,6 @@ YOUR LOCAL LAW. UNLESS REQUIRED BY LAW, NO COPYRIGHT HOLDER OR
 CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
 CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 =cut
 
