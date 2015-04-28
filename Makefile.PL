@@ -24,6 +24,7 @@ WriteMakefile(
         'File::Which' => 1.09,
         'Opt::Imistic' => 0.04,
         'Capture::Tiny' => 0.25,
+        'Config::Any' => 0.24,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'App-Multigit-*' },
