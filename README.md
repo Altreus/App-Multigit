@@ -9,12 +9,21 @@ modules in the directory.
 
 A file `.mgconfig` uses standard INI format to list the relevant modules:
 
-  [https://github.com/Author/Some-Module]
-  confkey=val
-  [https://github.com/Author/Some-Other-Module]
-  [ssh://my-git-server/Local-Module]
+    [https://github.com/Author/Some-Module.git]
+    confkey=val
+    [https://github.com/Author/Some-Other-Module.git]
+    [ssh://my-git-server/Local-Module.git]
 
-See the POD for the module for usage instructions.
+The repository's URL is the key to the section in the INI format. The `dir` key
+can be used to specify its location:
+
+    [https://github.com/Author/Some-Module]
+    dir=alternative-location
+
+By default, the final path part of the URL is used, minus the `.git` extension.
+
+The module `App::Multigit` itself provides an interface into this config. See
+the POD for details.
 
 ## Commands
 
