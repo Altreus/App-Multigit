@@ -1,0 +1,49 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use 5.014;
+
+use Opt::Imistic;
+use Capture::Tiny qw(capture_stdout);
+
+say usage() and exit 0 if $ARGV{help};
+
+my $log = capture_stdout {
+    system qw(git -C), $ARGV{workdir}, qw(log --all --pretty=oneline)
+};
+
+my $bz_re = qr/\b(bugzilla|bug|bz)\s*\Q$ARGV[0]/i;
+my $tracker_re = qr/\btracker\s*\Q$ARGV[0]/i;
+
+my @closes = map { /([[:xdigit:]]+)/ } grep { /$bz_re/ or /$tracker_re/ } split /\n/, $log;
+
+if (@closes) {
+    if ($ARGV{'repos-only'}) {
+        say $ARGV{workdir};
+    }
+    else {
+        say $ARGV{workdir}, ": ";
+        say "\t$_" for @closes;
+    }
+}
+
+sub usage {
+<<'EOU';
+Usage:
+    mg closes [--repos-only] ID
+
+    Searches the repositories for commits that mention ID.
+
+    Commits are recognised as either bugs or trackers with the given ID by
+    checking their commit messages for certain strings:
+        BZ $id
+        Bug $id
+        Bugzilla $id
+
+        Tracker $id
+
+    For each repository with matching commits, the commit hashes are listed.
+
+    Repositories with no matching commits are not reported at all.
+EOU
+}

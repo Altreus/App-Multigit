@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use 5.014;
+
+use Opt::Imistic;
+use Capture::Tiny qw(capture_stdout);
+
+say usage() and exit 0 if $ARGV{help};
+
+my $branches = capture_stdout {
+    system qw(git -C), $ARGV{workdir}, "branch", @ARGV;
+};
+
+say $ARGV{workdir};
+say $branches;
+
+sub usage {
+<<EOU;
+Usage:
+    mg branch [argv]
+
+    Runs `git branch argv` on each repository. See `git help branch`.
+
+    With no arguments, therefore, this just lists the branches in each
+    repository.
+EOU
+}

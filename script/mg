@@ -1,0 +1,68 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use 5.014;
+
+use Future;
+use IO::Async::Loop;
+use IO::Async::Process;
+use Path::Class;
+use File::Which qw(which);
+
+use App::Multigit;
+
+sub usage;
+
+my $cmd = shift or say usage and exit 1;
+
+if ($cmd eq 'help') {
+    # mg help is just usage
+    $cmd = shift or say usage and exit 0;
+
+    # mg help command is mg-command --help
+    my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";
+    exec $mg_cmd, "--help";
+}
+
+my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";
+my $loop = IO::Async::Loop->new;
+
+my @futures;
+
+my $repos = App::Multigit::all_repositories;
+
+for my $repo (keys $repos) {
+    my $dir = $repos->{$repo}->{dir}
+        // dir($repo)->basename =~ s/\.git$//r;
+
+    my $future = $loop->new_future;
+    my $buf;
+
+    $loop->add(IO::Async::Process->new(
+        command => [ $mg_cmd, "--workdir", $dir, @ARGV ],
+        # stdin?
+        stdout => {
+            into => \$buf,
+        },
+        on_finish => sub {
+            chomp $buf;
+            $future->done($buf);
+        },
+        on_exception => sub {
+            my $errno = shift;
+            say "$dir: error";
+            $future->fail($errno);
+        }
+    ));
+    push @futures, $future;
+}
+
+say for grep $_, sort Future->needs_all(@futures)->get;
+
+sub usage {
+<<EOU;
+Usage: 
+    mg [options] command [command-options]
+    mg help [command]
+EOU
+}
