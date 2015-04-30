@@ -5,8 +5,6 @@ use warnings;
 use 5.014;
 
 use Opt::Imistic;
-use Capture::Tiny qw(capture_stdout);
-
 use App::Multigit;
 
 say usage() and exit 0 if $ARGV{help};
