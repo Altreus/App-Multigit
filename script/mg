@@ -6,7 +6,7 @@ use 5.014;
 use Future;
 use Path::Class;
 use File::Which qw(which);
-
+use Cwd qw(getcwd);
 use App::Multigit;
 
 sub usage;
@@ -21,6 +21,10 @@ if ($cmd eq 'help') {
     my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";
     exec $mg_cmd, "--help";
 }
+elsif ($cmd eq 'init') {
+    App::Multigit::init(getcwd);
+    exit;
+}
 
 my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";
 
@@ -28,7 +32,7 @@ exec $mg_cmd, '--workdir', App::Multigit::mg_parent, @ARGV;
 
 sub usage {
 <<EOU;
-Usage: 
+Usage:
     mg [options] command [command-options]
     mg help [command]
 EOU

@@ -4,6 +4,8 @@ use 5.014;
 use strict;
 use warnings FATAL => 'all';
 
+use Capture::Tiny qw(capture);
+use File::Find::Rule;
 use Path::Class;
 use Config::Any;
 use IO::Async::Loop;
@@ -157,6 +159,51 @@ sub loop {
     $loop;
 }
 
+=head2 init($workdir)
+
+Scans C<$workdir> for git directories and registers each in C<.mgconfig>
+
+=cut
+
+sub init {
+    my $workdir = shift;
+    my @dirs = File::Find::Rule
+        ->relative
+        ->directory
+        ->maxdepth(1)
+        ->mindepth(1)
+        ->in($workdir);
+
+    my %config;
+    for my $dir (@dirs) {
+        my ($remotes) = capture {
+            system qw(git -C), $dir, qw(remote -v)
+                and return;
+        };
+
+        # FIXME: This seems fragile
+        next if $?;
+
+        if (not $remotes) {
+            warn "No remotes configured for $dir\n";
+            next;
+        }
+        my ($first_remote) = split /\n/, $remotes;
+        my ($name, $url) = split ' ', $first_remote;
+
+        $config{$url} = $dir;
+    }
+
+    {
+        my $config_filename = dir($workdir)->file(App::Multigit::mgconfig);
+        open my $config_out, ">", $config_filename;
+
+        for (keys %config) {
+            say $config_out "[$_]";
+            say $config_out "dir=$config{$_}";
+        }
+    }
+}
 1;
 
 __END__
