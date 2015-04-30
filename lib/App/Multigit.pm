@@ -1,12 +1,13 @@
 package App::Multigit;
 
-use 5.006;
+use 5.014;
 use strict;
 use warnings FATAL => 'all';
 
 use Path::Class;
 use Config::Any;
 use IO::Async::Loop;
+use IO::Async::Process;
 use Safe::Isa;
 
 =head1 NAME
@@ -82,7 +83,7 @@ sub all_repositories {
     };
 
     for (keys $repos) {
-        $repos{$_}->{dir} //= dir($_)->basename =~ s/\.git$//r
+        $repos->{$_}->{dir} //= dir($_)->basename =~ s/\.git$//r
     }
 
     return $repos;
@@ -136,8 +137,8 @@ sub each {
 
     my @futures;
     for my $repo (keys $repos) {
-        my $future = loop->new_future;
-        loop->add($subref->($future));
+        my $future = loop()->new_future;
+        loop()->add($subref->($future, $repo, $repos->{$repo}));
 
         push @futures, $future;
     }
