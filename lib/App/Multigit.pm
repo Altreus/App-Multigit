@@ -50,11 +50,13 @@ no mgconfig here.
 sub mg_parent {
     my $pwd = shift // dir->absolute;
 
-    do {
-        return $pwd if -e $pwd->file(mgconfig);
-        last if $pwd eq $pwd->parent;
+    PARENT: {
+        do {
+            return $pwd if -e $pwd->file(mgconfig);
+            last PARENT if $pwd eq $pwd->parent;
+        }
+        while ($pwd = $pwd->parent);
     }
-    while ($pwd = $pwd->parent);
 
     die "Could not find .mgconfig in any parent directory";
 }
