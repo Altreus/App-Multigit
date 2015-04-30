@@ -26,13 +26,11 @@ my @futures = App::Multigit::each(
 
         return IO::Async::Process->new(
             command => [ qw(git -C), $dir, "branch", @ARGV ],
-            # stdin?
             stdout => {
                 into => \$buf,
             },
             on_finish => sub {
                 chomp $buf;
-                say $buf;
 
                 $buf = "$dir:\n$buf";
 
