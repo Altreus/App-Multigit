@@ -79,10 +79,10 @@ sub all_repositories {
     });
 
     my $repos = +{
-        map { %$_ } values $cfg->[0]
+        map { %$_ } values %{ $cfg->[0] }
     };
 
-    for (keys $repos) {
+    for (keys %$repos) {
         $repos->{$_}->{dir} //= dir($_)->basename =~ s/\.git$//r
     }
 
@@ -136,7 +136,7 @@ sub each {
     my $repos = all_repositories;
 
     my @futures;
-    for my $repo (keys $repos) {
+    for my $repo (keys %$repos) {
         my $future = loop()->new_future;
         loop()->add($subref->($future, $repo, $repos->{$repo}));
 
