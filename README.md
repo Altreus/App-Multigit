@@ -37,10 +37,20 @@ The command is run:
 This is the only interface between you and App::Multigit. For any other
 behaviour, simply use App::Multigit inside your script.
 
-In this version, the command is run once per configured repository. In a future
-version, it will be run once with the path to the `.mgconfig` file, and it will
-have to iterate by itself. This allows commands to produce digests across the
-whole set.
+`mg` itself is only a thin wrapper. It checks the environment and then execs the
+above. The command itself is required to do whatever it needs to do.
+
+Commonly, the command will almost certainly want to run a git command for each
+repository and deal with the results. The examples do this by means of
+`App::Multigit::each` and an `IO::Async::Process` object.
+
+The `mg-branch` example simply blurts back the output from a git command run on
+each repository; the `mg-closes` example is more involved, only reporting those
+repositories for which the output is relevant.
+
+Since this is an extremely common thing to happen, a future version is likely to
+provide a function to simply run a command for each repository and return to you
+the data when they're all done. Currently, you have to roll your own async.
 
 ## Help
 
@@ -48,3 +58,6 @@ The usage string of `mg` is accessed by running `mg` on its own, or `mg help`.
 
 Running `mg help command` simply execs `mg-command --help`, so each command
 should understand the help option and implement it.
+
+The POD for `App::Multigit` will give you more information about how to actually
+use the interface to write a command.
