@@ -25,37 +25,31 @@ if ($cmd eq 'help') {
 }
 
 my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";
-my $loop = IO::Async::Loop->new;
 
-my @futures;
+my @futures = App::Multigit::each(
+    sub {
+        my ($future, $repo, $config) = @_;
+        my $dir = $config->{dir};
+        my $buf;
 
-my $repos = App::Multigit::all_repositories;
-
-for my $repo (keys $repos) {
-    my $dir = $repos->{$repo}->{dir}
-        // dir($repo)->basename =~ s/\.git$//r;
-
-    my $future = $loop->new_future;
-    my $buf;
-
-    $loop->add(IO::Async::Process->new(
-        command => [ $mg_cmd, "--workdir", $dir, @ARGV ],
-        # stdin?
-        stdout => {
-            into => \$buf,
-        },
-        on_finish => sub {
-            chomp $buf;
-            $future->done($buf);
-        },
-        on_exception => sub {
-            my $errno = shift;
-            say "$dir: error";
-            $future->fail($errno);
-        }
-    ));
-    push @futures, $future;
-}
+        return IO::Async::Process->new(
+            command => [ $mg_cmd, "--workdir", $dir, @ARGV ],
+            # stdin?
+            stdout => {
+                into => \$buf,
+            },
+            on_finish => sub {
+                chomp $buf;
+                $future->done($buf);
+            },
+            on_exception => sub {
+                my $errno = shift;
+                say "$dir: error";
+                $future->fail($errno);
+            }
+        );
+    }
+);
 
 say for grep $_, sort Future->needs_all(@futures)->get;
 
