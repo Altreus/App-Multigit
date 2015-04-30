@@ -102,6 +102,7 @@ added to an L<IO::Async> loop.
 It returns the array of L<Future> objects.
 
     # tableflip all the things
+    my @futures =
     App::Multigit::each(
         sub {
             my ($future, $repo, $config) = @_;
@@ -122,7 +123,10 @@ It returns the array of L<Future> objects.
                 }
             )
         }
-    )
+    );
+
+    # block til they're all done
+    my @output = Future->needs_all(@futures)->get;
 
 =cut
 
