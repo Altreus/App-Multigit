@@ -1,11 +1,14 @@
 package App::Multigit;
 
-use 5.006;
+use 5.014;
 use strict;
 use warnings FATAL => 'all';
 
 use Path::Class;
 use Config::Any;
+use IO::Async::Loop;
+use IO::Async::Process;
+use Safe::Isa;
 
 =head1 NAME
 
@@ -75,9 +78,83 @@ sub all_repositories {
         ]
     });
 
-    return +{
-        map { %$_ } values %{$cfg->[0]}
+    my $repos = +{
+        map { %$_ } values $cfg->[0]
     };
+
+    for (keys $repos) {
+        $repos->{$_}->{dir} //= dir($_)->basename =~ s/\.git$//r
+    }
+
+    return $repos;
+}
+
+=head2 each($subref)
+
+For each configured repository, C<$subref> will be run.
+
+Its first argument will be a L<Future> object; its second argument will be the
+repository URL; and its third argument will be the configuration for that
+repository.
+
+The subref should return a subclass of L<IO::Async::Notifier>, which will be
+added to an L<IO::Async> loop.
+
+It returns the array of L<Future> objects.
+
+    # tableflip all the things
+    my @futures =
+    App::Multigit::each(
+        sub {
+            my ($future, $repo, $config) = @_;
+            my $output_buffer;
+            IO::Async::Process->new(
+                command => [ 'git', '--work-tree='.$repo, qw/reset --hard HEAD/ ]
+                stdout => {
+                    into => \$output_buffer,
+                },
+                on_finish => sub {
+                    chomp $output_buffer;
+                    $future->done($output_buffer);
+                },
+                on_exception => sub {
+                    my $errno = shift;
+                    say "$dir: error";
+                    $future->fail($errno);
+                }
+            )
+        }
+    );
+
+    # block til they're all done
+    my @output = Future->needs_all(@futures)->get;
+
+=cut
+
+sub each {
+    my $subref = shift;
+    my $repos = all_repositories;
+
+    my @futures;
+    for my $repo (keys $repos) {
+        my $future = loop()->new_future;
+        loop()->add($subref->($future, $repo, $repos->{$repo}));
+
+        push @futures, $future;
+    }
+
+    return @futures;
+}
+
+=head2 loop
+
+Returns the L<IO::Async::Loop> object. This is essentially a singleton.
+
+=cut
+
+sub loop {
+    state $loop = IO::Async::Loop->new;
+    $loop;
 }
 
 1;
