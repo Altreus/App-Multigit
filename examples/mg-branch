@@ -4,12 +4,18 @@ use strict;
 use warnings;
 use 5.014;
 
-use Opt::Imistic;
+use Getopt::Long qw(:config gnu_getopt pass_through);
 use App::Multigit;
 
-say usage() and exit 0 if $ARGV{help};
+my $workdir;
+GetOptions(
+    'help|h' => sub {
+        say usage();
+        exit 0;
+    },
+    'workdir=s' => \$workdir,
+);
 
-my $workdir = $ARGV{workdir};
 chdir $workdir;
 
 my @futures = App::Multigit::each(
