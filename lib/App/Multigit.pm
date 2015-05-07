@@ -111,9 +111,10 @@ It returns the array of L<Future> objects.
     App::Multigit::each(
         sub {
             my ($future, $repo, $config) = @_;
+            my $dir = $config->{dir};
             my $output_buffer;
             IO::Async::Process->new(
-                command => [ 'git', '--work-tree='.$repo, qw/reset --hard HEAD/ ]
+                command => [ 'git', '--work-tree', $repo, qw/reset --hard HEAD/ ],
                 stdout => {
                     into => \$output_buffer,
                 },
@@ -133,11 +134,16 @@ It returns the array of L<Future> objects.
     # block til they're all done
     my @output = Future->needs_all(@futures)->get;
 
+C<$subref> may be an arrayref instead. In this case, an L<IO::Async::Process>
+will be created for you via L<C<make_process_from>>.
+
 =cut
 
 sub each {
     my $subref = shift;
     my $repos = all_repositories;
+
+    $subref = make_process_from(@$subref) unless ref $subref eq 'CODE';
 
     my @futures;
     for my $repo (keys %$repos) {
@@ -148,6 +154,38 @@ sub each {
     }
 
     return @futures;
+}
+
+=head2 make_process_from($arrayref)
+
+Returns a subref appropriate for L<C<each> >, using C<$arrayref> as the command
+to run.
+
+=cut
+
+sub make_process_from {
+    my $arrayref = shift;
+
+    return sub {
+        my ($future, $repo, $config) = @_;
+        my $dir = $config->{dir};
+        my $output_buffer;
+        IO::Async::Process->new(
+            command => $arrayref,
+            stdout => {
+                into => \$output_buffer,
+            },
+            on_finish => sub {
+                chomp $output_buffer;
+                $future->done($output_buffer);
+            },
+            on_exception => sub {
+                my $errno = shift;
+                say "$dir: error";
+                $future->fail($errno);
+            }
+        )
+    }
 }
 
 =head2 loop
