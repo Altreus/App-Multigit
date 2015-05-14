@@ -10,6 +10,7 @@ use Path::Class;
 use Config::Any;
 use IO::Async::Loop;
 use IO::Async::Process;
+use IPC::Run;
 use Safe::Isa;
 
 =head1 NAME
@@ -140,52 +141,47 @@ will be created for you via L<C<make_process_from>>.
 =cut
 
 sub each {
-    my $subref = shift;
+    my $command = shift;
     my $repos = all_repositories;
-
-    $subref = make_process_from(@$subref) unless ref $subref eq 'CODE';
 
     my @futures;
     for my $repo (keys %$repos) {
         my $future = loop()->new_future;
-        loop()->add($subref->($future, $repo, $repos->{$repo}));
+        my %child;
+
+        if (ref $command eq 'CODE') {
+            loop()->run_child(
+                code => sub {
+                    chdir $repos->{$repo}->{dir};
+                    $command->()
+                },
+                on_finish => sub {
+                    $future->done($repo, $repos->{$repo}, @_)
+                }
+            );
+        }
+        else {
+            my ($stdout, $stderr);
+            loop()->add(
+                IO::Async::Process->new(
+                    code => sub {
+                        chdir $repos->{$repo}->{dir};
+                        IPC::Run::run($command);
+                    },
+                    stdout => { into => \$stdout },
+                    stderr => { into => \$stderr },
+                    on_finish => sub {
+                        my ($process, $exitcode) = @_;
+                        $future->done($repo, $repos->{$repo}, $process->pid, $exitcode, $stdout, $stderr );
+                    }
+                )
+            );
+        }
 
         push @futures, $future;
     }
 
     return @futures;
-}
-
-=head2 make_process_from($arrayref)
-
-Returns a subref appropriate for L<C<each> >, using C<$arrayref> as the command
-to run.
-
-=cut
-
-sub make_process_from {
-    my $arrayref = shift;
-
-    return sub {
-        my ($future, $repo, $config) = @_;
-        my $dir = $config->{dir};
-        my $output_buffer;
-        IO::Async::Process->new(
-            command => $arrayref,
-            stdout => {
-                into => \$output_buffer,
-            },
-            on_finish => sub {
-                chomp $output_buffer;
-                $future->done($output_buffer);
-            },
-            on_exception => sub {
-                my $errno = shift;
-                say "$dir: error";
-                $future->fail($errno);
-            }
-        )
-    }
 }
 
 =head2 loop
