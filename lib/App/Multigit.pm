@@ -94,49 +94,37 @@ sub all_repositories {
     return $repos;
 }
 
-=head2 each($subref)
+=head2 each($command)
 
-For each configured repository, C<$subref> will be run.
+For each configured repository, C<$command> will be run. Each command is run in
+a separate process which C<chdir>s into the repository first.
 
-Its first argument will be a L<Future> object; its second argument will be the
-repository URL; and its third argument will be the configuration for that
-repository.
+C<$command> can be either a subref or an arrayref. If a subref, it is called
+with no parameters; if an arrayref, it is used as a system command. See
+L<IO::Async::Process> for the C<code> and C<command> arguments.
 
-The subref should return a subclass of L<IO::Async::Notifier>, which will be
-added to an L<IO::Async> loop.
+It returns an array of L<Future> objects, one for each repository.
 
-It returns the array of L<Future> objects.
+    my @futures = App::Multigit::each([qw/git reset --hard HEAD/]);
 
-    # tableflip all the things
-    my @futures =
-    App::Multigit::each(
-        sub {
-            my ($future, $repo, $config) = @_;
-            my $dir = $config->{dir};
-            my $output_buffer;
-            IO::Async::Process->new(
-                command => [ 'git', '--work-tree', $repo, qw/reset --hard HEAD/ ],
-                stdout => {
-                    into => \$output_buffer,
-                },
-                on_finish => sub {
-                    chomp $output_buffer;
-                    $future->done($output_buffer);
-                },
-                on_exception => sub {
-                    my $errno = shift;
-                    say "$dir: error";
-                    $future->fail($errno);
-                }
-            )
-        }
-    );
+The Futures yield several values:
 
-    # block til they're all done
-    my @output = Future->needs_all(@futures)->get;
+=over
 
-C<$subref> may be an arrayref instead. In this case, an L<IO::Async::Process>
-will be created for you via L<C<make_process_from>>.
+=item C<$repo> - The URL to the repository's remote, i.e. the key in the config file
+
+=item C<$config> - The rest of the config for this repo, including the C<dir>
+key, which will be the directory relative to the mg root.
+
+=item C<$pid>, C<$exitcode>, C<$stdout>, C<$stderr> - These are all from the
+subprocess that was run. See C<run_child> in L<IO::Async::Loop>.
+
+=back
+
+See the examples directory for two scripts that use the yielded values. It
+probably won't be much use to use the yielded values directly, because you'll
+get a huge list with no boundaries. (Well, I guess you could chop it up into
+sixes). The C<< ->then >> pattern in the examples works better.
 
 =cut
 
