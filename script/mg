@@ -28,7 +28,8 @@ elsif ($cmd eq 'init') {
 
 my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";
 
-exec $mg_cmd, '--workdir', App::Multigit::mg_parent, @ARGV;
+exec $mg_cmd, '--workdir', App::Multigit::mg_parent, @ARGV
+    or die "Failed to exec $mg_cmd: $!";
 
 sub usage {
 <<EOU;
