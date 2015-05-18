@@ -100,12 +100,18 @@ For each configured repository, C<$command> will be run. Each command is run in
 a separate process which C<chdir>s into the repository first.
 
 C<$command> can be either a subref or an arrayref. If a subref, it is called
-with no parameters; if an arrayref, it is used as a system command. See
-L<IO::Async::Process> for the C<code> and C<command> arguments.
+with the repositority URL and config hashref; if an arrayref, it is used as a
+system command. See L<IO::Async::Process> for the C<code> and C<command>
+arguments.
 
 It returns an array of L<Future> objects, one for each repository.
 
     my @futures = App::Multigit::each([qw/git reset --hard HEAD/]);
+    # - or -
+    my @futures = App::Multigit::each(sub {
+        my ($repo, $config) = @_;
+        ...
+    });
 
 The Futures yield several values:
 
@@ -141,7 +147,7 @@ sub each {
             loop()->run_child(
                 code => sub {
                     chdir $repos->{$repo}->{dir};
-                    $command->()
+                    $command->($repo, $repos->{$repo})
                 },
                 on_finish => sub {
                     $future->done($repo, $repos->{$repo}, @_)
