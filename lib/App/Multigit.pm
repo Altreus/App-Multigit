@@ -6,12 +6,13 @@ use warnings FATAL => 'all';
 
 use Capture::Tiny qw(capture);
 use File::Find::Rule;
+use Future::Utils qw(fmap);
 use Path::Class;
 use Config::Any;
-use IO::Async::Loop;
-use IO::Async::Process;
 use IPC::Run;
-use Safe::Isa;
+
+use App::Multigit::Repo;
+use App::Multigit::Loop qw(loop);
 
 =head1 NAME
 
@@ -99,38 +100,67 @@ sub all_repositories {
 For each configured repository, C<$command> will be run. Each command is run in
 a separate process which C<chdir>s into the repository first.
 
-C<$command> can be either a subref or an arrayref. If a subref, it is called
-with the repositority URL and config hashref; if an arrayref, it is used as a
-system command. See L<IO::Async::Process> for the C<code> and C<command>
-arguments.
+It returns a convergent L<Future> that represents all tasks. When this Future
+completes, all tasks are complete.
 
-It returns an array of L<Future> objects, one for each repository.
+In the arrayref form, the C<$command> is passed directly to C<run> in
+L<App::Multigit::Repo>.  The Futures returned thus are collated and the list of
+return values is thus collated. The list will be an alternating list of STDOUT
+and STDERRs from the commands thus run.
 
-    my @futures = App::Multigit::each([qw/git reset --hard HEAD/]);
-    # - or -
-    my @futures = App::Multigit::each(sub {
-        my ($repo, $config) = @_;
-        ...
+    my $future = App::Multigit::each([qw/git reset --hard HEAD/]);
+    my @stdios = $future->get;
+
+The subref form is more useful. The subref is run with the Repo object, allowing
+you to chain functionality thus.
+    
+    use curry;
+    my $future = App::Multigit::each(sub {
+        my $repo = shift;
+        $repo
+            ->run(\&do_a_thing)
+            ->then($repo->curry::run(\&do_another_thing))
+        ;
     });
 
-The Futures yield several values:
+In this case, the subref given to C<run> is passed the STDOUT and STDERR from
+the previous command; for convenience, they start out as the empty strings,
+rather than C<undef>.
 
-=over
+    sub do_a_thing {
+        my ($repo_obj, $stdout, $stderr) = @_;
+        ...
+    }
 
-=item C<$repo> - The URL to the repository's remote, i.e. the key in the config file
+Thus you can chain them in any order.
 
-=item C<$config> - The rest of the config for this repo, including the C<dir>
-key, which will be the directory relative to the mg root.
+Observe also that the interface to C<run> allows for the arrayref form as well:
 
-=item C<$pid>, C<$exitcode>, C<$stdout>, C<$stderr> - These are all from the
-subprocess that was run. See C<run_child> in L<IO::Async::Loop>.
+    use curry;
+    my $future = App::Multigit::each(sub {
+        my $repo = shift;
+        $repo
+            ->run([qw/git checkout master/])
+            ->then($repo->curry::run(\&do_another_thing))
+        ;
+    });
 
-=back
+Notably, the returned Future will gather the return values of all the other Futures.
+This means your final C<< ->then >> can be something other than a curried
+C<run>. The helper function C<report> produces a pair whose first value is the
+repo name and the second value is STDOUT concatenated with STDERR.
 
-See the examples directory for two scripts that use the yielded values. It
-probably won't be much use to use the yielded values directly, because you'll
-get a huge list with no boundaries. (Well, I guess you could chop it up into
-sixes). The C<< ->then >> pattern in the examples works better.
+    use curry;
+    my $future = App::Multigit::each(sub {
+        my $repo = shift;
+        $repo
+            ->run([qw/git checkout master/])
+            ->then($repo->curry::run(\&do_another_thing))
+            ->then(App::Multigit::report($repo))
+        ;
+    });
+
+    my %results = $future->get;
 
 =cut
 
@@ -138,44 +168,27 @@ sub each {
     my $command = shift;
     my $repos = all_repositories;
 
-    my @futures;
-    for my $repo (keys %$repos) {
-        my $future = loop()->new_future;
-        my %child;
+    return fmap { _run_in_repo($command, $_[0], $repos->{$_[0]}) } 
+        foreach => [ keys %$repos ],
+        concurrent => 20,
+    ;
+}
 
-        if (ref $command eq 'CODE') {
-            loop()->run_child(
-                code => sub {
-                    chdir $repos->{$repo}->{dir};
-                    $command->($repo, $repos->{$repo})
-                },
-                on_finish => sub {
-                    $future->done($repo, $repos->{$repo}, @_)
-                }
-            );
-        }
-        else {
-            my ($stdout, $stderr);
-            loop()->add(
-                IO::Async::Process->new(
-                    code => sub {
-                        chdir $repos->{$repo}->{dir};
-                        IPC::Run::run($command);
-                    },
-                    stdout => { into => \$stdout },
-                    stderr => { into => \$stderr },
-                    on_finish => sub {
-                        my ($process, $exitcode) = @_;
-                        $future->done($repo, $repos->{$repo}, $process->pid, $exitcode, $stdout, $stderr );
-                    }
-                )
-            );
-        }
+sub _run_in_repo {
+    my ($cmd, $repo, $config) = @_;
 
-        push @futures, $future;
+    if (ref $cmd eq 'ARRAY') {
+        App::Multigit::Repo->new(
+            name => $repo,
+            config => $config
+        )->run($cmd);
     }
-
-    return @futures;
+    else {
+        App::Multigit::Repo->new(
+            name => $repo,
+            config => $config
+        )->$cmd;
+    }
 }
 
 =head2 loop
@@ -184,10 +197,7 @@ Returns the L<IO::Async::Loop> object. This is essentially a singleton.
 
 =cut
 
-sub loop {
-    state $loop = IO::Async::Loop->new;
-    $loop;
-}
+# sub loop used to be here but I moved it.
 
 =head2 init($workdir)
 
@@ -234,6 +244,50 @@ sub init {
         }
     }
 }
+
+=head2 report
+
+This adapts a C<< ->then >> chain using C<run> in App::Multigit::Repo to return
+the name of the repository and the output.
+
+Returns a Future that yields a two-element list of the directory - from the
+config - and the STDOUT from the command, indented with tabs.
+
+Intended for use as a hash constructor.
+
+    my %report = Future->wait_all(@futures)->get;
+
+    for my $dir (sort keys %report) {
+        say for $dir, $report{$dir};
+    }
+
+=cut
+
+sub report {
+    my $repo = shift;
+    return sub {
+        my ($stdout, $stderr) = @_;
+        my $dir = $repo->config->{dir};
+
+        my $output = indent($stdout, 1) . indent($stderr, 1);
+
+        return Future->done(
+            $dir => $stdout =~ s/^/\t/gmr
+        );
+    }
+}
+
+=head2 indent
+
+Returns a copy of the first argument indented by the number of tabs in the
+second argument
+
+=cut
+
+sub indent {
+    $_[0] =~ s/^/"\t" x $_[1]/germ
+}
+
 1;
 
 __END__
