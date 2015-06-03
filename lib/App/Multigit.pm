@@ -266,13 +266,17 @@ Intended for use as a hash constructor.
 sub report {
     my $repo = shift;
     return sub {
+        return Future->done if not @_;
         my ($stdout, $stderr) = @_;
         my $dir = $repo->config->{dir};
 
-        my $output = indent($stdout, 1) . indent($stderr, 1);
+        my $output = do { 
+            no warnings 'uninitialized';
+            indent($stdout, 1) . indent($stderr, 1);
+        };
 
         return Future->done(
-            $dir => $stdout =~ s/^/\t/gmr
+            $dir => $output
         );
     }
 }
@@ -285,6 +289,7 @@ second argument
 =cut
 
 sub indent {
+    return if not defined $_[0];
     $_[0] =~ s/^/"\t" x $_[1]/germ
 }
 
