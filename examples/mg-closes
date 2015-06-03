@@ -6,6 +6,7 @@ use 5.014;
 use Getopt::Long qw(:config gnu_getopt);
 use App::Multigit;
 use Future;
+use curry;
 
 my ($workdir, $repos_only);
 GetOptions(
@@ -19,17 +20,20 @@ GetOptions(
 
 chdir $workdir;
 
-my @futures = 
-    map { $_->then(show_results()) }
-    App::Multigit::each([ qw(git log --all --pretty=oneline) ])
-;
+my $future = App::Multigit::each(sub {
+    my $repo = shift;
 
-my %done = Future->needs_all(@futures)->get;
+    $repo->run([ qw(git log --all --pretty=oneline) ])
+        ->then(sub { show_results($repo, @_) })
+        ->then(App::Multigit::report($repo));
+});
+
+my %done = $future->get;
 
 for my $dir (keys %done) {
+    chomp $done{$dir};
     if ($done{$dir}) {
-        say "$dir:";
-        say for map "\t$_", @{$done{$dir}};
+        say for "$dir:", $done{$dir};
     }
     else {
         say $dir;
@@ -37,26 +41,25 @@ for my $dir (keys %done) {
 }
 
 sub show_results {
-    sub {
-        my ($repo, $config, $pid, $exitcode, $stdout, $stderr) = @_;
-        my $dir = $config->{dir};
+    my ($repo, $stdout, $stderr) = @_;
+    my $dir = $repo->config->{dir};
 
-        chomp $stdout;
+    chomp $stdout;
 
-        my @commits = parse_log($stdout);
+    my @commits = parse_log($stdout);
 
-        if (! @commits) {
-            return Future->done;
-        }
+    if (! @commits) {
+        return Future->done;
+    }
 
-        if ($repos_only) {
-            return Future->done($dir => undef);
-        }
-        else {
-            return Future->done(
-                $dir => \@commits 
-            );
-        }
+    if ($repos_only) {
+        return Future->done(undef);
+    }
+    else {
+        local $" = "\n";
+        return Future->done(
+            "@commits"
+        );
     }
 }
 

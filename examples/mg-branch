@@ -7,6 +7,7 @@ use 5.014;
 use Getopt::Long qw(:config gnu_getopt pass_through);
 use App::Multigit;
 use Future;
+use curry;
 
 my $workdir;
 GetOptions(
@@ -19,19 +20,16 @@ GetOptions(
 
 chdir $workdir;
 
-my @futures = 
-    map { $_->then(report()) }
-    App::Multigit::each([qw(git branch), @ARGV])
-;
+my $future = App::Multigit::each(sub {
+    my ($repo) = @_;
+    $repo->run([ qw(git branch), @ARGV ])
+        ->then(App::Multigit::report($repo))
+});
 
-say for grep $_, sort Future->needs_all(@futures)->get;
+my %report = $future->get;
 
-sub report {
-    sub {
-        my ($repo, $config, $pid, $exitcode, $stdout, $stderr) = @_;
-        my $dir = $config->{dir};
-        Future->done( "$dir:\n$stdout");
-    }
+for my $repo (sort keys %report) {
+    say for $repo, $report{$repo};
 }
 
 sub usage {
