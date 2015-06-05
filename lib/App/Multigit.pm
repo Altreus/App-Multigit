@@ -245,54 +245,6 @@ sub init {
     }
 }
 
-=head2 report
-
-This adapts a C<< ->then >> chain using C<run> in App::Multigit::Repo to return
-the name of the repository and the output.
-
-Returns a Future that yields a two-element list of the directory - from the
-config - and the STDOUT from the command, indented with tabs.
-
-Intended for use as a hash constructor.
-
-    my %report = Future->wait_all(@futures)->get;
-
-    for my $dir (sort keys %report) {
-        say for $dir, $report{$dir};
-    }
-
-=cut
-
-sub report {
-    my $repo = shift;
-    return sub {
-        return Future->done if not @_;
-        my ($stdout, $stderr) = @_;
-        my $dir = $repo->config->{dir};
-
-        my $output = do { 
-            no warnings 'uninitialized';
-            indent($stdout, 1) . indent($stderr, 1);
-        };
-
-        return Future->done(
-            $dir => $output
-        );
-    }
-}
-
-=head2 indent
-
-Returns a copy of the first argument indented by the number of tabs in the
-second argument
-
-=cut
-
-sub indent {
-    return if not defined $_[0];
-    $_[0] =~ s/^/"\t" x $_[1]/germ
-}
-
 1;
 
 __END__

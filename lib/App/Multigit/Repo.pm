@@ -142,6 +142,91 @@ sub run {
     return $future;
 }
 
+=head2 gather(%data)
+
+Intended for currying. This goes between C<run>s and ensures output is not lost.
+
+Concatenates the STDOUT and STDERR from the command with the respective STDOUT
+or STDERR of the previous command and continues the chain.
+
+    $repo->run([qw/git command/])
+        ->then($repo->curry::run([qw/another git command/]))
+        ->then($repo->curry::gather)
+        ->then(App::Multigit::report($repo))
+
+See C<run> for the shape of the data
+
+=cut
+
+sub gather {
+    my ($self, %data) = @_;
+
+    no warnings 'uninitialized';
+    $data{stdout} .= delete $data{past_stdout};
+    $data{stderr} .= delete $data{past_stderr};
+
+    Future->done(%data);
+}
+
+=head2 report(%data)
+
+Intended for currying, and accepts a hash-shaped list à la C<run>.
+
+Returns a Future that yields a two-element list of the directory - from the
+config - and the STDOUT from the command, indented with tabs.
+
+If %data is empty, the Future yields nothing. By this mechanism, you can avoid
+reporting about a repository entirely.
+
+Use C<gather> to collect STDOUT/STDERR from previous commands too.
+
+Intended for use as a hash constructor.
+
+
+    my $future = App::Multigit::each(sub {
+        my $repo = shift;
+        $repo->run([qw/git command/])
+            ->then($repo->curry::run([qw/another git command/]))
+            ->then($repo->curry::gather)
+            ->then($repo->curry::report)
+        ;
+    });
+
+    my %report = $future->get;
+
+    for my $dir (sort keys %report) { ... }
+
+=cut
+
+sub report {
+    my $repo = shift;
+    my %data = @_;
+    return Future->done if not @_;
+
+    my $dir = $repo->config->{dir};
+
+    my $output = do { 
+        no warnings 'uninitialized';
+        _indent($data{stdout}, 1) . _indent($data{stderr}, 1);
+    };
+
+    return Future->done(
+        $dir => $output
+    );
+}
+
+
+=head2 _indent
+
+Returns a copy of the first argument indented by the number of tabs in the
+second argument. Not really a method on this class but it's here if you want it.
+
+=cut
+
+sub _indent {
+    return if not defined $_[0];
+    $_[0] =~ s/^/"\t" x $_[1]/germ
+}
 1;
 
 __END__
