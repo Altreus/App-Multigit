@@ -25,7 +25,7 @@ my $future = App::Multigit::each(sub {
 
     $repo->run([ qw(git log --all --pretty=oneline) ])
         ->then(sub { show_results($repo, @_) })
-        ->then(App::Multigit::report($repo));
+        ->then($repo->curry::report);
 });
 
 my %done = $future->get;
@@ -41,24 +41,22 @@ for my $dir (keys %done) {
 }
 
 sub show_results {
-    my ($repo, $stdout, $stderr) = @_;
+    my ($repo, %data) = @_;
     my $dir = $repo->config->{dir};
 
-    chomp $stdout;
-
-    my @commits = parse_log($stdout);
+    my @commits = parse_log($data{stdout});
 
     if (! @commits) {
         return Future->done;
     }
 
     if ($repos_only) {
-        return Future->done(undef);
+        return Future->done(stdout => undef);
     }
     else {
         local $" = "\n";
         return Future->done(
-            "@commits"
+            stdout => "@commits"
         );
     }
 }
