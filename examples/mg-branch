@@ -23,7 +23,7 @@ chdir $workdir;
 my $future = App::Multigit::each(sub {
     my ($repo) = @_;
     $repo->run([ qw(git branch), @ARGV ])
-        ->then(App::Multigit::report($repo))
+        ->then($repo->curry::report)
 });
 
 my %report = $future->get;
