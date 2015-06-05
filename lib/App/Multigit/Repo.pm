@@ -2,10 +2,13 @@ package App::Multigit::Repo;
 
 use App::Multigit::Loop qw(loop);
 use IO::Async::Process;
+use Future;
 use Moo;
 use Cwd 'getcwd';
 
 use 5.014;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -46,38 +49,70 @@ has config => (
 
 =head1 METHODS
 
-=head2 run($command, [$stdout, [$stderr]])
+=head2 run($command, [%data])
 
-Run a command, passing C<$stdout> and C<$stderr> to it.
+Run a command, in one of two ways:
 
-If the command is a CODE ref, it is run with this Repo object, C<$stdout>, and
-C<$stderr>. The CODE reference should use normal print/say/warn/die behaviour.
+If the command is a CODE ref, it is run with this Repo object, and the entirety
+of C<%data>. The CODE reference should use normal print/say/warn/die behaviour.
 Its return value is discarded.
 
-If it is an ARRAY ref, it is run with IO::Async::Process, with C<$stdout> sent
-to the process's STDIN. C<$stderr> is lost.
+If it is an ARRAY ref, it is run with IO::Async::Process, with C<stdout> sent
+to the process's STDIN.
 
-The process returns a Future that yields a new pair of STDOUT and STDERR
-strings.
+A Future object is returned. When the command finishes, the Future is completed
+with a hash-shaped list identical to the one C<ruN> accepts.
+
+=head3 data
+
+C<run> accepts a hash of data. If C<stdout> or C<stderr> are provided here, the
+Future will have these values in C<past_stdout> and C<past_stderr>, and
+C<stdout> and C<stderr> will get populated with the I<new> STDOUT and STDERR
+from the provided C<$command>.
+
+=over
+
+=item C<stdout> - The STDOUT from the operation. Will be set to the empty string
+if undef.
+
+=item C<stderr> - The STDERR from the operation. Will be set to the empty string
+if undef.
+
+=item C<exitcode> - The C<$?> equivalent as produced by IO::Async::Process.
+
+=item C<past_stdout> - The STDOUT from the prior command
+
+=item C<past_stderr> - The STDERR from the prior command
+
+=back
+
+C<past_stdout> and C<past_stderr> are never used; they are provided for you to
+write any procedure you may require to concatenate new output with old. See
+C<gather>.
 
 =cut
 
 sub run {
-    my ($self, $command, $past_stdout, $past_stderr) = @_;
+    my ($self, $command, %data) = @_;
     my $future = loop->new_future;
 
-    $past_stdout //= '';
-    $past_stderr //= '';
+    $data{stdout} //= '';
 
     if (ref $command eq 'CODE') {
         loop->run_child(
             code => sub {
                 chdir $self->config->{dir};
-                $self->$command($past_stdout, $past_stderr)
+                $self->$command(%data)
             },
             on_finish => sub {
-                my (undef, undef, $stdout, $stderr) = @_;
-                $future->done($stdout, $stderr)
+                my (undef, $exitcode, $stdout, $stderr) = @_;
+                $future->done(
+                    stdout => $stdout, 
+                    stderr => $stderr, 
+                    exitcode => $exitcode, 
+                    past_stdout => $data{stdout},
+                    past_stderr => $data{stderr}
+                );
             }
         );
     }
@@ -89,11 +124,17 @@ sub run {
                     chdir $self->config->{dir};
                     IPC::Run::run($command);
                 },
-                stdin => { from => $past_stdout },
+                stdin => { from => $data{stdout} },
                 stdout => { into => \$stdout },
                 stderr => { into => \$stderr },
                 on_finish => sub {
-                    $future->done($stdout, $stderr);
+                    $future->done(
+                        stdout => $stdout, 
+                        stderr => $stderr, 
+                        exitcode => $_[0],
+                        past_stdout => $data{stdout},
+                        past_stderr => $data{stderr},
+                    );
                 }
             )
         );
