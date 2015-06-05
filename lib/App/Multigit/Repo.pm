@@ -55,7 +55,8 @@ Run a command, in one of two ways:
 
 If the command is a CODE ref, it is run with this Repo object, and the entirety
 of C<%data>. The CODE reference should use normal print/say/warn/die behaviour.
-Its return value is discarded.
+Its return value is discarded. If the subref returns at all, it is considered to
+have succeeded.
 
 If it is an ARRAY ref, it is run with IO::Async::Process, with C<stdout> sent
 to the process's STDIN.
@@ -101,10 +102,11 @@ sub run {
     if (ref $command eq 'CODE') {
         loop->run_child(
             code => sub {
-                chdir $self->config->{dir};
-                $self->$command(%data);
-                0
+                $command->($self, %data); 0;
             },
+            setup => [
+                chdir => $self->config->{dir}
+            ],
             on_finish => sub {
                 my (undef, $exitcode, $stdout, $stderr) = @_;
                 $future->done(
@@ -119,16 +121,12 @@ sub run {
     }
     else {
         loop->run_child(
-            code => sub {
-                chdir $self->config->{dir};
-                IPC::Run::run($command, \$data{stdout}, \my $stdout, \my $stderr);
-                print STDOUT $stdout;
-                print STDERR $stderr;
-                exit $?;
-            },
+            command => $command,
+            setup => [
+                chdir => $self->config->{dir}
+            ],
             on_finish => sub {
                 my (undef, $exitcode, $stdout, $stderr) = @_;
-
                 $future->done(
                     stdout => $stdout, 
                     stderr => $stderr, 
