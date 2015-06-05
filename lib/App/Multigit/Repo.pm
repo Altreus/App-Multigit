@@ -125,6 +125,7 @@ sub run {
             setup => [
                 chdir => $self->config->{dir}
             ],
+            stdin => $data{stdout},
             on_finish => sub {
                 my (undef, $exitcode, $stdout, $stderr) = @_;
                 $future->done(
