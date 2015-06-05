@@ -22,6 +22,13 @@ can be used to specify its location:
 
 By default, the final path part of the URL is used, minus the `.git` extension.
 
+The key here doesn't have to be the URL, but it normally is. You can be explicit
+about the URL:
+
+    [Some-Module]
+    dir=/path/to/whatever
+    url=https://github.com/Author/Some-Module
+
 The module `App::Multigit` itself provides an interface into this config. See
 the POD for details.
 

@@ -89,7 +89,8 @@ sub all_repositories {
     };
 
     for (keys %$repos) {
-        $repos->{$_}->{dir} //= dir($_)->basename =~ s/\.git$//r
+        $repos->{$_}->{dir} //= dir($_)->basename =~ s/\.git$//r;
+        $repos->{$_}->{url} //= $_;
     }
 
     return $repos;
