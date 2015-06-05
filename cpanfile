@@ -9,10 +9,6 @@ requires "Path::Class" => "0.35";
 requires "curry" => "1";
 requires "perl" => "5.014";
 
-on 'build' => sub {
-  requires "Test::More" => "0";
-};
-
 on 'configure' => sub {
   requires "ExtUtils::MakeMaker" => "0";
 };
