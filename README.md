@@ -48,10 +48,6 @@ The `mg-branch` example simply blurts back the output from a git command run on
 each repository; the `mg-closes` example is more involved, only reporting those
 repositories for which the output is relevant.
 
-Since this is an extremely common thing to happen, a future version is likely to
-provide a function to simply run a command for each repository and return to you
-the data when they're all done. Currently, you have to roll your own async.
-
 ## Help
 
 The usage string of `mg` is accessed by running `mg` on its own, or `mg help`.

@@ -301,13 +301,29 @@ __END__
 
 Alastair McGowan-Douglas, C<< <altreus at perl.org> >>
 
+=head1 ACKNOWLEDGEMENTS
+
+This module could have been a lot simpler but I wanted it to be a foray into the
+world of Futures.  Shout outs go to those cats in irc.freenode.net#perl who
+basically architectured this for me.
+
+=over
+
+=item tm604 (TEAM) - for actually understanding Future architecture, and not
+being mad at me.
+
+=item LeoNerd (PEVANS) - also for not being irritated by my inane questions
+about IO::Async and Future.
+
+=back
+
 =head1 BUGS
 
 Please report bugs on the github repository L<https://github.com/Altreus/App-Multigit>.
 
 =head1 LICENSE
 
-Copyright 2014 Alastair McGowan-Douglas.
+Copyright 2015 Alastair McGowan-Douglas.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the the Artistic License (2.0). You may obtain a
