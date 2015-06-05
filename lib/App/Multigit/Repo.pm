@@ -8,6 +8,8 @@ use Cwd 'getcwd';
 
 use 5.014;
 
+our $VERSION = '0.03';
+
 =encoding utf8
 
 =head1 NAME

@@ -5,6 +5,8 @@ use warnings;
 use IO::Async::Loop;
 use 5.014;
 
+our $VERSION = '0.03';
+
 use base qw(Exporter);
 
 our @EXPORT_OK = qw(loop);
