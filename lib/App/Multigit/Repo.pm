@@ -102,7 +102,8 @@ sub run {
         loop->run_child(
             code => sub {
                 chdir $self->config->{dir};
-                $self->$command(%data)
+                $self->$command(%data);
+                0
             },
             on_finish => sub {
                 my (undef, $exitcode, $stdout, $stderr) = @_;
@@ -117,27 +118,26 @@ sub run {
         );
     }
     else {
-        my ($stdout, $stderr);
-        loop->add(
-            IO::Async::Process->new(
-                code => sub {
-                    chdir $self->config->{dir};
-                    IPC::Run::run($command);
-                },
-                stdin => { from => $data{stdout} },
-                stdout => { into => \$stdout },
-                stderr => { into => \$stderr },
-                on_finish => sub {
-                    $future->done(
-                        stdout => $stdout, 
-                        stderr => $stderr, 
-                        exitcode => $_[0],
-                        past_stdout => $data{stdout},
-                        past_stderr => $data{stderr},
-                    );
-                }
-            )
-        );
+        loop->run_child(
+            code => sub {
+                chdir $self->config->{dir};
+                IPC::Run::run($command, \$data{stdout}, \my $stdout, \my $stderr);
+                print STDOUT $stdout;
+                print STDERR $stderr;
+                exit $?;
+            },
+            on_finish => sub {
+                my (undef, $exitcode, $stdout, $stderr) = @_;
+
+                $future->done(
+                    stdout => $stdout, 
+                    stderr => $stderr, 
+                    exitcode => $exitcode,
+                    past_stdout => $data{stdout},
+                    past_stderr => $data{stderr},
+                );
+            }
+        )
     }
     return $future;
 }
