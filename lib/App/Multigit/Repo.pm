@@ -176,12 +176,9 @@ Intended for currying, and accepts a hash-shaped list à la C<run>.
 Returns a Future that yields a two-element list of the directory - from the
 config - and the STDOUT from the command, indented with tabs.
 
-If %data is empty, the Future yields nothing. By this mechanism, you can avoid
-reporting about a repository entirely.
-
 Use C<gather> to collect STDOUT/STDERR from previous commands too.
 
-Intended for use as a hash constructor.
+The yielded list is intended for use as a hash constructor.
 
 
     my $future = App::Multigit::each(sub {
@@ -200,11 +197,10 @@ Intended for use as a hash constructor.
 =cut
 
 sub report {
-    my $repo = shift;
+    my $self = shift;
     my %data = @_;
-    return Future->done if not @_;
 
-    my $dir = $repo->config->{dir};
+    my $dir = $self->config->{dir};
 
     my $output = do { 
         no warnings 'uninitialized';
