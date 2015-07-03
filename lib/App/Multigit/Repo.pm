@@ -64,7 +64,7 @@ If it is an ARRAY ref, it is run with IO::Async::Process, with C<stdout> sent
 to the process's STDIN.
 
 A Future object is returned. When the command finishes, the Future is completed
-with a hash-shaped list identical to the one C<ruN> accepts.
+with a hash-shaped list identical to the one C<run> accepts.
 
 =head3 data
 
