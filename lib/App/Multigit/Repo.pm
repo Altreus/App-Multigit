@@ -163,8 +163,10 @@ sub gather {
     my ($self, %data) = @_;
 
     no warnings 'uninitialized';
-    $data{stdout} .= delete $data{past_stdout};
-    $data{stderr} .= delete $data{past_stderr};
+    my $stdout = join "\n", grep { $_ } delete $data{past_stdout}, $data{stdout};
+    my $stderr = join "\n", grep { $_ } delete $data{past_stderr}, $data{stderr};
+    $data{stdout} = $stdout;
+    $data{stderr} = $stderr;
 
     Future->done(%data);
 }
