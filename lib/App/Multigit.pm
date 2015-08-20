@@ -246,6 +246,33 @@ sub init {
     }
 }
 
+=head2 base_branch
+
+Returns the branch that the base repository is on; i.e. the repository that
+contains the C<.mgconfig> or equivalent.
+
+The purpose of this is to switch the entire project onto a feature branch;
+scripts can use this as the cue to work against a branch other than master.
+
+This will die if the base repository is not on a branch, because if you've asked
+for it, giving you a default will more likely be a hindrance than a help.
+
+=cut
+
+sub base_branch() {
+    my $dir = mg_parent;
+
+    my ($stdout) = capture {
+        system qw(git -C), $dir, qw(branch)
+    };
+
+    my ($branch) = $stdout =~ /\* (.+)/;
+    return $branch if $branch;
+
+    die "The base repository is not on a branch!";
+}
+
+
 1;
 
 __END__
