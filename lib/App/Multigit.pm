@@ -272,6 +272,13 @@ sub base_branch() {
     die "The base repository is not on a branch!";
 }
 
+sub set_base_branch {
+    my $base_branch = shift;
+
+    my ($stdout, $stderr) = capture {
+        system qw(git -C), mg_parent, qw(checkout -B), $base_branch
+    };
+}
 
 1;
 
