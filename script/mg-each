@@ -1,0 +1,40 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use 5.014;
+
+use Getopt::Long qw(:config gnu_getopt pass_through);
+use App::Multigit qw/mg_each base_branch/;
+use Future;
+use curry;
+
+my $workdir;
+GetOptions(
+    'help|h' => sub {
+        say usage();
+        exit 0;
+    },
+    'workdir=s' => \$workdir,
+);
+
+chdir $workdir;
+
+say for mg_each(
+    sub {
+        my $repo = shift;
+
+        $repo->run(['git', @ARGV])
+            ->then($repo->curry::report)
+    })
+->get;
+
+
+sub usage() {
+<<EOU
+Usage:
+    
+    mg each [git stuff]
+
+Runs `git [git stuff]` in each repository and reports the results.
+EOU
+}
