@@ -14,6 +14,13 @@ use IPC::Run;
 use App::Multigit::Repo;
 use App::Multigit::Loop qw(loop);
 
+use Exporter 'import';
+
+our @EXPORT_OK = qw/
+    mgconfig mg_parent all_repositories 
+    base_branch set_base_branch mg_each
+/;
+
 =head1 NAME
 
 App::Multigit - Run commands on a bunch of git repositories without having to
@@ -174,6 +181,16 @@ sub each {
         concurrent => 20,
     ;
 }
+
+=head2 mg_each
+
+This is the exported name of C<each>
+
+    use App::Multigit qw/mg_each/;
+
+=cut
+
+*mg_each = \&each;
 
 sub _run_in_repo {
     my ($cmd, $repo, $config) = @_;
