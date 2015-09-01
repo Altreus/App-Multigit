@@ -289,6 +289,12 @@ sub base_branch() {
     die "The base repository is not on a branch!";
 }
 
+=head2 set_base_branch($branch)
+
+Checks out the provided branch name on the parent repository
+
+=cut
+
 sub set_base_branch {
     my $base_branch = shift;
 
