@@ -17,18 +17,17 @@ if ($cmd eq 'help') {
     # mg help is just usage
     $cmd = shift or say usage and exit 0;
 
-    # mg help command is mg-command --help
-    my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";
-    exec $mg_cmd, "--help";
+    @ARGV = '--help';
 }
-elsif ($cmd eq 'init') {
-    App::Multigit::init(getcwd);
-    exit;
+else {
+    # init cannot know the mg_parent because there might not be one yet
+    unshift @ARGV, '--workdir', App::Multigit::mg_parent
+        unless $cmd eq 'init';
 }
 
 my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";
 
-exec $mg_cmd, '--workdir', App::Multigit::mg_parent, @ARGV
+exec $mg_cmd, @ARGV
     or die "Failed to exec $mg_cmd: $!";
 
 sub usage {
