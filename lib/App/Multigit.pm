@@ -4,12 +4,14 @@ use 5.014;
 use strict;
 use warnings FATAL => 'all';
 
+use List::UtilsBy qw(sort_by);
 use Capture::Tiny qw(capture);
 use File::Find::Rule;
 use Future::Utils qw(fmap);
 use Path::Class;
 use Config::Any;
 use IPC::Run;
+use Try::Tiny;
 
 use App::Multigit::Repo;
 use App::Multigit::Loop qw(loop);
@@ -228,11 +230,18 @@ sub init {
     my @dirs = File::Find::Rule
         ->relative
         ->directory
+        ->not_name('.git')
         ->maxdepth(1)
         ->mindepth(1)
         ->in($workdir);
 
     my %config;
+
+    # If it's already inited, we'll keep the config
+    %config = try {
+        %{ all_repositories() }
+    } catch {};
+
     for my $dir (@dirs) {
         my ($remotes) = capture {
             system qw(git -C), $dir, qw(remote -v)
@@ -249,16 +258,19 @@ sub init {
         my ($first_remote) = split /\n/, $remotes;
         my ($name, $url) = split ' ', $first_remote;
 
-        $config{$url} = $dir;
+        $config{$url}->{dir} = $dir;
     }
 
     {
-        my $config_filename = dir($workdir)->file(App::Multigit::mgconfig);
+        my $config_filename = dir($workdir)->file(mgconfig);
         open my $config_out, ">", $config_filename;
 
-        for (keys %config) {
-            say $config_out "[$_]";
-            say $config_out "dir=$config{$_}";
+        for my $remote (sort_by { m{/([^/]+)$} } keys %config) {
+            say $config_out "[$remote]";
+            for my $thing (sort keys %{ $config{$remote} }) {
+                say $config_out "$thing=${\ $config{$remote}->{$thing} }";
+            }
+            say $config_out "";
         }
     }
 }
