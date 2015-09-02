@@ -5,7 +5,7 @@ use warnings;
 use IO::Async::Loop;
 use 5.014;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use base qw(Exporter);
 
