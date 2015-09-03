@@ -25,9 +25,8 @@ GetOptions(
             $ENV{MG_IGNORE_STDERR} = 1;
         }
     },
-    'concurrent|c=i' => sub {
-        $ENV{MG_CONCURRENT_PROCESSES} = $_[1];
-    },
+    'concurrent|c=i' => \$ENV{MG_CONCURRENT_PROCESSES},
+    'skip-readonly' => \$ENV{MG_SKIP_READONLY},
 );
 
 my $cmd = shift or say usage and exit 1;

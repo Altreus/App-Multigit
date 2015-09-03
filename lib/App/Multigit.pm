@@ -64,7 +64,13 @@ Controlled by the C<MG_IGNORE_{STDOUT,STDERR}> environment variables.
 
 Number of processes to run in parallel. Defaults to 20.
 
-Controller by the C<MG_CONCURRENT_PROCESSES> environment variable.
+Controlled by the C<MG_CONCURRENT_PROCESSES> environment variable.
+
+=head3 skip_readonly
+
+Do nothing to repositories that have C<readonly = 1> set in C<.mgconfig>.
+
+Controlled by the C<MG_SKIP_READONLY> environment variable.
 
 =cut
 
@@ -73,6 +79,7 @@ our %BEHAVIOUR = (
     ignore_stdout       => !!$ENV{MG_IGNORE_STDOUT},
     ignore_stderr       => !!$ENV{MG_IGNORE_STDERR},
     concurrent          => $ENV{MG_CONCURRENT_PROCESSES} // 20,
+    skip_readonly       => !!$ENV{MG_SKIP_READONLY},
 );
 
 =head1 FUNCTIONS
@@ -235,6 +242,9 @@ This is the exported name of C<each>
 
 sub _run_in_repo {
     my ($cmd, $repo, $config) = @_;
+
+    return Future->done( $config->{dir} => "Readonly" )
+        if $BEHAVIOUR{skip_readonly} and $config->{readonly};
 
     if (ref $cmd eq 'ARRAY') {
         App::Multigit::Repo->new(
