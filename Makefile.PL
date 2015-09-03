@@ -22,7 +22,7 @@ my %WriteMakefileArgs = (
   "MIN_PERL_VERSION" => "5.014",
   "NAME" => "App::Multigit",
   "PREREQ_PM" => {
-    "Config::Any" => "0.24",
+    "Config::INI" => "0.025",
     "Cwd" => "3.47",
     "File::Which" => "1.09",
     "Future" => "0.3",
@@ -35,7 +35,7 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => "0.22",
     "curry" => 1
   },
-  "VERSION" => "0.06",
+  "VERSION" => "0.07",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -43,7 +43,7 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
-  "Config::Any" => "0.24",
+  "Config::INI" => "0.025",
   "Cwd" => "3.47",
   "File::Which" => "1.09",
   "Future" => "0.3",

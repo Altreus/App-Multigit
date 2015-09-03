@@ -1,5 +1,10 @@
 {{ $NEXT }}
 
+0.07      2015-09-03 17:55:10 BST
+
+    - Remove Config::Any (which was causing problems) in favour of Config::INI
+    - Add understanding of readonly repositories
+
 0.06      2015-09-03 16:16:59 BST
 
     - Implemented %BEHAVIOUR to control operations
