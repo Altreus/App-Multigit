@@ -10,6 +10,7 @@ use File::Find::Rule;
 use Future::Utils qw(fmap);
 use Path::Class;
 use Config::INI::Reader;
+use Config::INI::Writer;
 use IPC::Run;
 use Try::Tiny;
 
@@ -300,18 +301,9 @@ sub init {
         $config{$url}->{dir} = $dir;
     }
 
-    {
-        my $config_filename = dir($workdir)->file(mgconfig);
-        open my $config_out, ">", $config_filename;
-
-        for my $remote (sort_by { m{/([^/]+)$} } keys %config) {
-            say $config_out "[$remote]";
-            for my $thing (sort keys %{ $config{$remote} }) {
-                say $config_out "$thing=${\ $config{$remote}->{$thing} }";
-            }
-            say $config_out "";
-        }
-    }
+    
+    my $config_filename = dir($workdir)->file(mgconfig);
+    Config::INI::Writer->write_file(\%config, $config_filename);
 }
 
 =head2 base_branch
