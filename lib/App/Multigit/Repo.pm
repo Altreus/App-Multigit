@@ -8,7 +8,7 @@ use Cwd 'getcwd';
 
 use 5.014;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =encoding utf8
 
