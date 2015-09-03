@@ -5,9 +5,39 @@
 App::Multigit - Run commands on a bunch of git repositories without having to
 deal with git subrepositories.
 
-=head1 VERSION
+=head1 PACKAGE VARS
 
-Version 0.01
+=head2 %BEHAVIOUR
+
+This holds configuration set by options passed to the C<mg> script itself.
+
+Observe that C<mg [options] command [command-options]> will pass C<options> to
+C<mg>, and C<command-options> to C<mg-command>. It is those C<options> that will
+affect C<%BEHAVIOUR>.
+
+Scripts may also therefore change C<%BEHAVIOUR> themselves, but it is probably
+badly behaved to do so.
+
+=head3 report_on_no_output
+
+Defaults to true; this should be used by scripts to determine whether to bother
+mentioning repositories that gave no output at all for the given task. If you
+use C<App::Multigit::Repo::report>, this will be honoured by default.
+
+Controlled by the C<MG_REPORT_ON_NO_OUTPUT> environment variable.
+
+=head3 ignore_stdout, ignore_stderr
+
+These default to false, and will black-hole these streams wherever we have
+control to do so.
+
+Controlled by the C<MG_IGNORE_{STDOUT,STDERR}> environment variables.
+
+=head3 concurrent_processes
+
+Number of processes to run in parallel. Defaults to 20.
+
+Controller by the C<MG_CONCURRENT_PROCESSES> environment variable.
 
 =head1 FUNCTIONS
 

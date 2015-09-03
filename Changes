@@ -1,5 +1,10 @@
 {{ $NEXT }}
 
+0.06      2015-09-03 16:16:59 BST
+
+    - Implemented %BEHAVIOUR to control operations
+    - Added options to mg to control %BEHAVIOUR
+
 0.05      2015-09-02 15:44:28 BST
 
     - Cleaned up the mg script and created mg-init
