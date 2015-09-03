@@ -8,8 +8,27 @@ use Path::Class;
 use File::Which qw(which);
 use Cwd qw(getcwd);
 use App::Multigit;
+use Getopt::Long qw(:config gnu_getopt pass_through);
 
 sub usage;
+
+GetOptions(
+    help => sub {
+        say usage and exit;
+    },
+    'quiet|q' => sub {
+        state $qs = 0;
+        $qs++;
+
+        $ENV{MG_REPORT_ON_NO_OUTPUT} = 0;
+        if ($qs == 2) {
+            $ENV{MG_IGNORE_STDERR} = 1;
+        }
+    },
+    'concurrent|c=i' => sub {
+        $ENV{MG_CONCURRENT_PROCESSES} = $_[1];
+    },
+);
 
 my $cmd = shift or say usage and exit 1;
 
@@ -31,9 +50,31 @@ exec $mg_cmd, @ARGV
     or die "Failed to exec $mg_cmd: $!";
 
 sub usage {
-<<EOU;
+<<'EOU'
 Usage:
     mg [options] command [command-options]
     mg help [command]
+
+Runs mg-$command, which may or may not run something in each repository.
+
+`options` control the environment of mg itself; `command-options` control the
+specific command. Each command will accept its own set of options, so see `mg
+help $command` for those.
+
+Options:
+
+    -q 
+    --quiet
+        Repeatable option. First occurrence prevents reporting on repositories
+        that had no output; second occurrence stifles stdout from all streams
+        before applying the effect of the first occurrence.
+
+    --concurrent=N
+    -c N
+        Limit concurrency to N processes at once. This is often a good idea when
+        using `mg each` with a bunch of repositories that point to the same
+        server; if you cannot have more than N connections to the server, you
+        probably don't want to connect to it more than N times. That's when you
+        might use this.
 EOU
 }

@@ -101,6 +101,9 @@ sub run {
 
     $data{stdout} //= '';
 
+    my $ignore_stdout = $App::Multigit::BEHAVIOUR{ignore_stdout};
+    my $ignore_stderr = $App::Multigit::BEHAVIOUR{ignore_stderr};
+
     if (ref $command eq 'CODE') {
         loop->run_child(
             code => sub {
@@ -112,11 +115,11 @@ sub run {
             on_finish => sub {
                 my (undef, $exitcode, $stdout, $stderr) = @_;
                 $future->done(
-                    stdout => $stdout, 
-                    stderr => $stderr, 
+                    stdout => $ignore_stdout ? '' : $stdout,
+                    stderr => $ignore_stderr ? '' : $stderr, 
                     exitcode => $exitcode, 
-                    past_stdout => $data{stdout},
-                    past_stderr => $data{stderr}
+                    past_stdout => $ignore_stdout ? '' : $data{stdout},
+                    past_stderr => $ignore_stderr ? '' : $data{stderr},
                 );
             }
         );
@@ -131,11 +134,11 @@ sub run {
             on_finish => sub {
                 my (undef, $exitcode, $stdout, $stderr) = @_;
                 $future->done(
-                    stdout => $stdout, 
-                    stderr => $stderr, 
+                    stdout => $ignore_stdout ? '' : $stdout,
+                    stderr => $ignore_stderr ? '' : $stderr,
                     exitcode => $exitcode,
-                    past_stdout => $data{stdout},
-                    past_stderr => $data{stderr},
+                    past_stdout => $ignore_stdout ? '' : $data{stdout},
+                    past_stderr => $ignore_stderr ? '' : $data{stderr},
                 );
             }
         )
@@ -165,8 +168,8 @@ sub gather {
     no warnings 'uninitialized';
     my $stdout = join "\n", grep { $_ } delete $data{past_stdout}, $data{stdout};
     my $stderr = join "\n", grep { $_ } delete $data{past_stderr}, $data{stderr};
-    $data{stdout} = $stdout;
-    $data{stderr} = $stderr;
+    $data{stdout} = $stdout unless $App::Multigit::BEHAVIOUR{ignore_stdout};
+    $data{stderr} = $stderr unless $App::Multigit::BEHAVIOUR{ignore_stderr};
 
     Future->done(%data);
 }
@@ -204,10 +207,16 @@ sub report {
 
     my $dir = $self->config->{dir};
 
+    $data{stdout} = '' if $App::Multigit::BEHAVIOUR{ignore_stdout};
+    $data{stderr} = '' if $App::Multigit::BEHAVIOUR{ignore_stderr};
+
     my $output = do { 
         no warnings 'uninitialized';
         _indent($data{stdout}, 1) . _indent($data{stderr}, 1);
     };
+
+    return Future->done unless $App::Multigit::BEHAVIOUR{report_on_no_output} 
+        or $output =~ s/\s//gr;
 
     return Future->done(
         $dir => $output
