@@ -9,7 +9,7 @@ use Capture::Tiny qw(capture);
 use File::Find::Rule;
 use Future::Utils qw(fmap);
 use Path::Class;
-use Config::Any;
+use Config::INI::Reader;
 use IPC::Run;
 use Try::Tiny;
 
@@ -131,24 +131,14 @@ sub all_repositories {
     my $pwd = shift // dir->absolute;
     my $mg_parent = mg_parent $pwd;
 
-    my $cfg = Config::Any->load_files({
-        files => [ mgconfig ],
-        use_ext => 0,
-        force_plugins => [
-            qw/Config::Any::INI/
-        ]
-    });
+    my $cfg = Config::INI::Reader->read_file($mg_parent->file(mgconfig));
 
-    my $repos = +{
-        map { %$_ } values %{ $cfg->[0] }
-    };
-
-    for (keys %$repos) {
-        $repos->{$_}->{dir} //= dir($_)->basename =~ s/\.git$//r;
-        $repos->{$_}->{url} //= $_;
+    for (keys %$cfg) {
+        $cfg->{$_}->{dir} //= dir($_)->basename =~ s/\.git$//r;
+        $cfg->{$_}->{url} //= $_;
     }
 
-    return $repos;
+    return $cfg;
 }
 
 =head2 each($command)

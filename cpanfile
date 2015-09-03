@@ -1,4 +1,4 @@
-requires "Config::Any" => "0.24";
+requires "Config::INI" => "0.025";
 requires "Cwd" => "3.47";
 requires "File::Which" => "1.09";
 requires "Future" => "0.3";
