@@ -1,5 +1,9 @@
 {{ $NEXT }}
 
+0.08      2015-09-04 10:59:24 BST
+
+    - mg-each now runs the entire command, and no longer assumes git by default
+
 0.07      2015-09-03 17:55:10 BST
 
     - Remove Config::Any (which was causing problems) in favour of Config::INI
