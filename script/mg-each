@@ -23,7 +23,7 @@ say for mg_each(
     sub {
         my $repo = shift;
 
-        $repo->run(['git', @ARGV])
+        $repo->run(\@ARGV)
             ->then($repo->curry::report)
     })
 ->get;
@@ -33,8 +33,8 @@ sub usage() {
 <<EOU
 Usage:
     
-    mg each [git stuff]
+    mg each [command]
 
-Runs `git [git stuff]` in each repository and reports the results.
+Runs `command` in each repository and reports the results.
 EOU
 }
