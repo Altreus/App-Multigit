@@ -162,6 +162,11 @@ for it, giving you a default will more likely be a hindrance than a help.
 
 Checks out the provided branch name on the parent repository
 
+=head2 extract_future
+
+A helper that turns a Future object into the data inside it, then succeeds with
+a new Future.
+
 =head1 AUTHOR
 
 Alastair McGowan-Douglas, C<< <altreus at perl.org> >>

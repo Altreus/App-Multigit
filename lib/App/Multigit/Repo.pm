@@ -114,13 +114,20 @@ sub run {
             ],
             on_finish => sub {
                 my (undef, $exitcode, $stdout, $stderr) = @_;
-                $future->done(
+                my %details = (
                     stdout => $ignore_stdout ? '' : $stdout,
                     stderr => $ignore_stderr ? '' : $stderr, 
                     exitcode => $exitcode, 
                     past_stdout => $ignore_stdout ? '' : $data{stdout},
                     past_stderr => $ignore_stderr ? '' : $data{stderr},
                 );
+
+                if ($exitcode == 0) {
+                    $future->done(%details);
+                }
+                else {
+                    $future->fail("Child process exited with nonzero exit status", %details);
+                }
             }
         );
     }
@@ -133,13 +140,20 @@ sub run {
             stdin => $data{stdout},
             on_finish => sub {
                 my (undef, $exitcode, $stdout, $stderr) = @_;
-                $future->done(
+                my %details = (
                     stdout => $ignore_stdout ? '' : $stdout,
                     stderr => $ignore_stderr ? '' : $stderr,
                     exitcode => $exitcode,
                     past_stdout => $ignore_stdout ? '' : $data{stdout},
                     past_stderr => $ignore_stderr ? '' : $data{stderr},
                 );
+
+                if ($exitcode == 0) {
+                    $future->done(%details);
+                }
+                else {
+                    $future->fail("Child process exited with nonzero exit status", %details);
+                }
             }
         )
     }

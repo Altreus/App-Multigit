@@ -22,6 +22,7 @@ use Exporter 'import';
 our @EXPORT_OK = qw/
     mgconfig mg_parent all_repositories 
     base_branch set_base_branch mg_each
+    extract_future
 /;
 
 =head1 NAME
@@ -345,6 +346,29 @@ sub set_base_branch {
         system qw(git -C), mg_parent, qw(checkout -B), $base_branch
     };
 }
+
+=head2 extract_future
+
+A helper that turns a Future object into the data inside it, then succeeds with
+a new Future.
+
+=cut
+
+sub extract_future {
+    my $f = shift;
+
+    my @result;
+
+    if ($f->failure) {
+        (undef, @result) = $f->failure;
+    }
+    else {
+        @result = $f->get;
+    }
+
+    Future->done(@result);
+}
+
 
 1;
 
