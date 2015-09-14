@@ -19,7 +19,7 @@ GetOptions(
 
 chdir $workdir;
 
-say for mg_each(
+my %result = mg_each(
     sub {
         my $repo = shift;
 
@@ -28,6 +28,9 @@ say for mg_each(
     })
 ->get;
 
+for (sort keys %result) {
+    say $_; say $result{$_};
+}
 
 sub usage() {
 <<EOU
