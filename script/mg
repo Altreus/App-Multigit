@@ -12,22 +12,30 @@ use Getopt::Long qw(:config gnu_getopt pass_through);
 
 sub usage;
 
-GetOptions(
-    help => sub {
-        say usage and exit;
-    },
-    'quiet|q' => sub {
-        state $qs = 0;
-        $qs++;
+{
+    my $qs = 0;
+    GetOptions(
+        help => sub {
+            say usage and exit;
+        },
+        'quiet|q' => sub {
+            # Can't use + for this because -v needs to counteract it.
+            $qs++;
+        },
+        'verbose|v' => sub {
+            $qs--;
+        },
+        'concurrent|c=i' => \$ENV{MG_CONCURRENT_PROCESSES},
+        'skip-readonly' => \$ENV{MG_SKIP_READONLY},
+    );
 
+    if ($qs > 0) {
         $ENV{MG_REPORT_ON_NO_OUTPUT} = 0;
-        if ($qs == 2) {
-            $ENV{MG_IGNORE_STDERR} = 1;
-        }
-    },
-    'concurrent|c=i' => \$ENV{MG_CONCURRENT_PROCESSES},
-    'skip-readonly' => \$ENV{MG_SKIP_READONLY},
-);
+    }
+    if ($qs > 1) {
+        $ENV{MG_IGNORE_STDERR} = 1;
+    }
+}
 
 my $cmd = shift or say usage and exit 1;
 
@@ -67,6 +75,12 @@ Options:
         Repeatable option. First occurrence prevents reporting on repositories
         that had no output; second occurrence stifles stdout from all streams
         before applying the effect of the first occurrence.
+
+    -v
+    --verbose
+        Repeatable option. Every occurrence of -v will counteract an occurrence
+        of -q, so if you have some environment stuff going on you can override
+        it.
 
     --concurrent=N
     -c N
