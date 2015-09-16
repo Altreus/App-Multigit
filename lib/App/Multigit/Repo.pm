@@ -99,6 +99,8 @@ sub run {
     my ($self, $command, %data) = @_;
     my $future = loop->new_future;
 
+    bless $future, 'App::Multigit::Future';
+
     $data{stdout} //= '';
 
     my $ignore_stdout = $App::Multigit::BEHAVIOUR{ignore_stdout};
@@ -152,7 +154,9 @@ sub run {
                     $future->done(%details);
                 }
                 else {
-                    $future->fail("Child process exited with nonzero exit status", %details);
+                    $future->fail(
+                        "Child process exited with nonzero exit status",
+                        exit_nonzero => %details);
                 }
             }
         )

@@ -14,6 +14,7 @@ use Config::INI::Writer;
 use IPC::Run;
 use Try::Tiny;
 
+use App::Multigit::Future;
 use App::Multigit::Repo;
 use App::Multigit::Loop qw(loop);
 
@@ -216,10 +217,12 @@ sub each {
     my $command = shift;
     my $repos = all_repositories;
 
-    return fmap { _run_in_repo($command, $_[0], $repos->{$_[0]}) } 
+    my $f = fmap { _run_in_repo($command, $_[0], $repos->{$_[0]}) } 
         foreach => [ keys %$repos ],
         concurrent => $BEHAVIOUR{concurrent_processes},
     ;
+
+    bless $f, 'App::Multigit::Future';
 }
 
 =head2 mg_each
@@ -235,7 +238,7 @@ This is the exported name of C<each>
 sub _run_in_repo {
     my ($cmd, $repo, $config) = @_;
 
-    return Future->done( $config->{dir} => "Readonly" )
+    return App::Multigit::Future->done( $config->{dir} => "Readonly" )
         if $BEHAVIOUR{skip_readonly} and $config->{readonly};
 
     if (ref $cmd eq 'ARRAY') {
@@ -346,29 +349,6 @@ sub set_base_branch {
         system qw(git -C), mg_parent, qw(checkout -B), $base_branch
     };
 }
-
-=head2 extract_future
-
-A helper that turns a Future object into the data inside it, then succeeds with
-a new Future.
-
-=cut
-
-sub extract_future {
-    my $f = shift;
-
-    my @result;
-
-    if ($f->failure) {
-        (undef, @result) = $f->failure;
-    }
-    else {
-        @result = $f->get;
-    }
-
-    Future->done(@result);
-}
-
 
 1;
 

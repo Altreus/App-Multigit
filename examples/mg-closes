@@ -4,7 +4,7 @@ use warnings;
 use 5.014;
 
 use Getopt::Long qw(:config gnu_getopt);
-use App::Multigit;
+use App::Multigit qw(mg_each);
 use Future;
 use curry;
 
@@ -20,12 +20,12 @@ GetOptions(
 
 chdir $workdir;
 
-my $future = App::Multigit::each(sub {
+my $future = mg_each(sub {
     my $repo = shift;
 
     $repo->run([ qw(git log --all --pretty=oneline) ])
-        ->then(sub { show_results($repo, @_) })
-        ->then($repo->curry::report);
+        ->then(show_results($repo))
+        ->finally($repo->curry::report);
 });
 
 my %done = $future->get;
@@ -41,23 +41,26 @@ for my $dir (keys %done) {
 }
 
 sub show_results {
-    my ($repo, %data) = @_;
-    my $dir = $repo->config->{dir};
+    my $repo = shift;
+    return sub {
+        my (%data) = @_;
+        my $dir = $repo->config->{dir};
 
-    my @commits = parse_log($data{stdout});
+        my @commits = parse_log($data{stdout});
 
-    if (! @commits) {
-        return Future->done;
-    }
+        if (! @commits) {
+            return Future->done;
+        }
 
-    if ($repos_only) {
-        return Future->done(stdout => undef);
-    }
-    else {
-        local $" = "\n";
-        return Future->done(
-            stdout => "@commits"
-        );
+        if ($repos_only) {
+            return Future->done(stdout => undef);
+        }
+        else {
+            local $" = "\n";
+            return Future->done(
+                stdout => "@commits"
+            );
+        }
     }
 }
 

@@ -24,7 +24,7 @@ my %result = mg_each(
         my $repo = shift;
 
         $repo->run(\@ARGV)
-            ->then($repo->curry::report)
+            ->finally($repo->curry::report)
     })
 ->get;
 
