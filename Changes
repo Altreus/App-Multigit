@@ -1,5 +1,13 @@
 {{ $NEXT }}
 
+0.09      2015-09-17 12:41:09 BST
+
+    - Improved docs, which had fallen behind
+    - Created App::Multigit::Future
+    - New -q and -v options to the mg script itself
+    - New `mg root` script
+    - Failed commands now produce failed Futures.
+
 0.08      2015-09-04 10:59:24 BST
 
     - mg-each now runs the entire command, and no longer assumes git by default

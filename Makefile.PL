@@ -16,14 +16,17 @@ my %WriteMakefileArgs = (
   "EXE_FILES" => [
     "script/mg",
     "script/mg-each",
-    "script/mg-init"
+    "script/mg-init",
+    "script/mg-root"
   ],
   "LICENSE" => "artistic_2",
   "MIN_PERL_VERSION" => "5.014",
   "NAME" => "App::Multigit",
   "PREREQ_PM" => {
+    "Capture::Tiny" => 0,
     "Config::INI" => "0.025",
     "Cwd" => "3.47",
+    "File::Find::Rule" => 0,
     "File::Which" => "1.09",
     "Future" => "0.3",
     "Getopt::Long" => "2.42",
@@ -35,7 +38,7 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => "0.22",
     "curry" => 1
   },
-  "VERSION" => "0.08",
+  "VERSION" => "0.09",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -43,8 +46,10 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
+  "Capture::Tiny" => 0,
   "Config::INI" => "0.025",
   "Cwd" => "3.47",
+  "File::Find::Rule" => 0,
   "File::Which" => "1.09",
   "Future" => "0.3",
   "Getopt::Long" => "2.42",
