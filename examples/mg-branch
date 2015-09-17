@@ -23,7 +23,7 @@ chdir $workdir;
 my $future = mg_each(sub {
     my ($repo) = @_;
     $repo->run([ qw(git branch), @ARGV ])
-        ->then($repo->curry::report)
+        ->finally($repo->curry::report)
 });
 
 my %report = $future->get;

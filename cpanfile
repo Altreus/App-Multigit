@@ -1,6 +1,8 @@
+requires "Capture::Tiny";
 requires "Config::INI" => "0.025";
 requires "Cwd" => "3.47";
 requires "File::Which" => "1.09";
+requires "File::Find::Rule";
 requires "Future" => "0.3";
 requires "Getopt::Long" => "2.42";
 requires "IO::Async" => "0.67";

@@ -25,7 +25,7 @@ my $future = mg_each(sub {
 
     $repo->run([ qw(git log --all --pretty=oneline) ])
         ->then(show_results($repo))
-        ->finally($repo->curry::report);
+    ;
 });
 
 my %done = $future->get;
@@ -53,12 +53,12 @@ sub show_results {
         }
 
         if ($repos_only) {
-            return Future->done(stdout => undef);
+            return Future->done($dir => undef);
         }
         else {
             local $" = "\n";
             return Future->done(
-                stdout => "@commits"
+                $dir => "@commits"
             );
         }
     }
