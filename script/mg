@@ -8,7 +8,7 @@ use Path::Class;
 use File::Which qw(which);
 use Cwd qw(getcwd);
 use App::Multigit;
-use Getopt::Long qw(:config gnu_getopt pass_through);
+use Getopt::Long qw(:config gnu_getopt require_order);
 
 sub usage;
 
