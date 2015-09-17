@@ -5,6 +5,8 @@ use warnings;
 
 use base qw( IO::Async::Future );
 
+our $VERSION = '0.01';
+
 =head1 NAME
 
 App::Multigit::Future - Futures for App::Multigit
@@ -49,7 +51,8 @@ sub finally {
         }
 
         (ref $f)->done(@result);
-    });
+    })
+    ->then($code);
 }
 
 1;
