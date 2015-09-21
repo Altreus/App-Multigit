@@ -5,19 +5,9 @@ use 5.014;
 
 use Getopt::Long qw(:config gnu_getopt pass_through);
 use App::Multigit qw/mg_each base_branch/;
+use App::Multigit::Script;
 use Future;
 use curry;
-
-my $workdir;
-GetOptions(
-    'help|h' => sub {
-        say usage();
-        exit 0;
-    },
-    'workdir=s' => \$workdir,
-);
-
-chdir $workdir;
 
 my %result = mg_each(
     sub {

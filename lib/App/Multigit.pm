@@ -21,9 +21,9 @@ use App::Multigit::Loop qw(loop);
 use Exporter 'import';
 
 our @EXPORT_OK = qw/
-    mgconfig mg_parent all_repositories 
+    mgconfig mg_parent 
+    all_repositories selected_repositories 
     base_branch set_base_branch mg_each
-    extract_future
 /;
 
 =head1 NAME
@@ -87,6 +87,22 @@ our %BEHAVIOUR = (
     skip_readonly       => !!$ENV{MG_SKIP_READONLY},
 );
 
+=head2 @SELECTED_REPOS
+
+If this is not empty, it should contain paths to repositories. Relative paths
+will be determined relative to L<C<<mg_root>>|/mg_root>.
+
+Instead of using the C<.mgconfig>, the directories in here will be used as the
+list of repositories on which to work.
+
+Each repository's C<origin> remote will be interrogated. If this exists in the
+C<.mgconfig> then it will be used as normal; otherwise, it will be treated as
+though it had the default configuration.
+
+=cut
+
+our @SELECTED_REPOS;
+
 =head1 FUNCTIONS
 
 These are not currently exported.
@@ -144,6 +160,51 @@ sub all_repositories {
     }
 
     return $cfg;
+}
+
+=head2 selected_repositories
+
+This returns the repository configuration as determined by 
+L<C<<@SELECTED_REPOS>>|/@SELECTED_REPOS>. Directories that exist in the main
+config (L<all_repositories>) will have their configuration honoured, but unknown
+directories will have default configuration.
+
+=cut
+
+sub selected_repositories {
+    my $all_repositories = all_repositories;
+
+    return $all_repositories unless @SELECTED_REPOS;
+
+    my $bydir = +{ map {$_->{dir} => $_} values %$all_repositories };
+
+    my $selected_repos = {};
+
+    my $parent = mg_parent;
+
+    for my $dir (@SELECTED_REPOS) {
+        $dir = dir($dir)->relative($parent);
+        if (exists $bydir->{$dir}) {
+            $selected_repos->{ $bydir->{$dir}->{url} } = $bydir->{$dir};
+        }
+        else {
+            my $url = 
+                try {
+                    _sensible_remote_url($dir);
+                }
+                catch {
+                    warn $_;
+                }
+            or next;
+
+            $selected_repos->{ $url } = {
+                url => $url,
+                dir => $dir,
+            }
+        }
+    }
+
+    return $selected_repos;
 }
 
 =head2 each($command)
@@ -323,7 +384,7 @@ form is used.
 
 sub each {
     my $command = shift;
-    my $repos = all_repositories;
+    my $repos = selected_repositories;
 
     my $f = fmap { _run_in_repo($command, $_[0], $repos->{$_[0]}) } 
         foreach => [ keys %$repos ],
@@ -387,27 +448,38 @@ sub init {
     } catch {};
 
     for my $dir (@dirs) {
-        my ($remotes) = capture {
-            system qw(git -C), $dir, qw(remote -v)
-                and return;
-        };
-
-        # FIXME: This seems fragile
-        next if $?;
-
-        if (not $remotes) {
-            warn "No remotes configured for $dir\n";
-            next;
-        }
-        my ($first_remote) = split /\n/, $remotes;
-        my ($name, $url) = split ' ', $first_remote;
-
+        my $url = try {
+                _sensible_remote_url($dir);
+            }
+            catch {
+                warn $_;
+            }
+        or next;
         $config{$url}->{dir} = $dir;
     }
-
     
     my $config_filename = dir($workdir)->file(mgconfig);
     Config::INI::Writer->write_file(\%config, $config_filename);
+}
+
+# Fetch either origin URL, or any URL. Dies if none.
+sub _sensible_remote_url {
+    my $dir = shift;
+    my ($remotes, $stderr, $exitcode) = capture {
+        system qw(git -C), $dir, qw(remote -v)
+            and return;
+    };
+
+    die $stderr if $exitcode;
+
+    if (not $remotes) {
+        die "No remotes configured for $dir\n";
+    }
+
+    my @remotes = split /\n/, $remotes;
+    my %remotes = map {split ' '} @remotes;
+
+    return $remotes{origin} // $remotes{ (keys %remotes)[0] }
 }
 
 =head2 base_branch
