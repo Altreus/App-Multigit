@@ -5,20 +5,18 @@ use 5.014;
 
 use Getopt::Long qw(:config gnu_getopt);
 use App::Multigit qw(mg_each);
+use App::Multigit::Script;
 use Future;
 use curry;
 
-my ($workdir, $repos_only);
-GetOptions(
-    'help|h' => sub {
-        say usage();
-        exit 0;
-    },
-    'workdir=s' => \$workdir,
-    'repos-only' => \$repos_only
+%options = (
+    %options,
+    'repos-only' => 0
 );
 
-chdir $workdir;
+GetOptions(
+    'repos-only' => \$repos_only
+);
 
 my $future = mg_each(sub {
     my $repo = shift;

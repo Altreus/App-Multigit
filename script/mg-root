@@ -3,20 +3,10 @@ use strict;
 use warnings;
 use 5.014;
 
-use Getopt::Long qw(:config gnu_getopt);
 use App::Multigit;
-use Path::Class;
+use App::Multigit::Script;
 
-my $workdir;
-GetOptions(
-    'help|h' => sub {
-        say usage();
-        exit 0;
-    },
-    'workdir=s' => \$workdir,
-);
-
-say App::Multigit::mg_parent(dir($workdir));
+say App::Multigit::mg_parent();
 
 sub usage() {
 <<EOU

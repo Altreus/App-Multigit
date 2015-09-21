@@ -121,12 +121,19 @@ sub mgconfig() {
 =head2 mg_parent
 
 Tries to find the closest directory with an C<mgconfig> in it. Dies if there is
-no mgconfig here.
+no mgconfig here. Optionally accepts the directory to start with.
 
 =cut
 
 sub mg_parent {
-    my $pwd = shift // dir->absolute;
+    my $pwd;
+    if (@_) {
+        $pwd = dir(shift);
+    }
+    else {
+        $pwd = dir;
+    }
+    $pwd = $pwd->absolute;
 
     PARENT: {
         do {
