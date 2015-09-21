@@ -47,6 +47,18 @@ Do nothing to repositories that have C<readonly = 1> set in C<.mgconfig>.
 
 Controlled by the C<MG_SKIP_READONLY> environment variable.
 
+=head2 @SELECTED_REPOS
+
+If this is not empty, it should contain paths to repositories. Relative paths
+will be determined relative to L<C<<mg_root>>|/mg_root>.
+
+Instead of using the C<.mgconfig>, the directories in here will be used as the
+list of repositories on which to work.
+
+Each repository's C<origin> remote will be interrogated. If this exists in the
+C<.mgconfig> then it will be used as normal; otherwise, it will be treated as
+though it had the default configuration.
+
 =head1 FUNCTIONS
 
 These are not currently exported.
@@ -59,7 +71,7 @@ to stop me typoing it all the time.
 =head2 mg_parent
 
 Tries to find the closest directory with an C<mgconfig> in it. Dies if there is
-no mgconfig here.
+no mgconfig here. Optionally accepts the directory to start with.
 
 =head2 all_repositories
 
@@ -67,6 +79,13 @@ Returns a hashref of all repositories under C<mg_parent>.
 
 The keys are the repository directories relative to C<mg_parent>, and the values
 are the hashrefs from the config, if any.
+
+=head2 selected_repositories
+
+This returns the repository configuration as determined by 
+L<C<<@SELECTED_REPOS>>|/@SELECTED_REPOS>. Directories that exist in the main
+config (L<all_repositories>) will have their configuration honoured, but unknown
+directories will have default configuration.
 
 =head2 each($command)
 
