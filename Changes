@@ -1,5 +1,13 @@
 {{ $NEXT }}
 
+0.10      2015-09-22 15:53:11 BST
+
+    - Added support for selection of repos to work against
+    - Added App::Multigit::Script helper module for scripts
+      - Which accepts a list of repos on STDIN to work against
+    - Added mg-grep
+    - All help text is now from Pod::Usage
+
 0.09      2015-09-17 12:41:09 BST
 
     - Improved docs, which had fallen behind

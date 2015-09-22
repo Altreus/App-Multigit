@@ -16,6 +16,7 @@ my %WriteMakefileArgs = (
   "EXE_FILES" => [
     "script/mg",
     "script/mg-each",
+    "script/mg-grep",
     "script/mg-init",
     "script/mg-root"
   ],
@@ -35,10 +36,11 @@ my %WriteMakefileArgs = (
     "List::UtilsBy" => "0.09",
     "Moo" => "2.000001",
     "Path::Class" => "0.35",
+    "Pod::Usage" => 0,
     "Try::Tiny" => "0.22",
     "curry" => 1
   },
-  "VERSION" => "0.09",
+  "VERSION" => "0.10",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -58,6 +60,7 @@ my %FallbackPrereqs = (
   "List::UtilsBy" => "0.09",
   "Moo" => "2.000001",
   "Path::Class" => "0.35",
+  "Pod::Usage" => 0,
   "Try::Tiny" => "0.22",
   "curry" => 1
 );
