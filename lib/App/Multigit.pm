@@ -190,6 +190,9 @@ sub selected_repositories {
     my $parent = mg_parent;
 
     for my $dir (@SELECTED_REPOS) {
+        # Allow people to not have to worry about extracting blanks
+        next if not $dir;
+
         $dir = dir($dir)->relative($parent);
         if (exists $bydir->{$dir}) {
             $selected_repos->{ $bydir->{$dir}->{url} } = $bydir->{$dir};
