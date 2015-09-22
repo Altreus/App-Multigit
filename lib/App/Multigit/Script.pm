@@ -2,6 +2,7 @@ package App::Multigit::Script;
 
 use strict;
 use warnings;
+use 5.014;
 
 use Getopt::Long qw(:config gnu_getopt pass_through require_order);
 use Pod::Usage qw(pod2usage);
@@ -26,8 +27,7 @@ The default behaviour is to
 =item Use L<Getopt::Long> to handle C<--workdir>. This changes directory and is
 part of the internal communication between C<mg> itself and your script.
 
-=item Also handle C<--help>, by running a C<usage> sub in your script, or using
-Pod::Usage if there isn't one.
+=item Also handle C<--help>, by running Pod::Usage against your script.
 
 =item Read C<STDIN> for a list of directories to work against, if appropriate
 
@@ -59,7 +59,12 @@ Returns a hash containing the standard options for all C<mg> scripts.
 sub get_default_options {
     my $package = shift;
     my %options = (
-        help => sub { show_help($package) }
+        help => sub {
+            pod2usage({
+                -exitval => 0,
+                -verbose => 1,
+            });
+        }
     );
 
     GetOptions(
@@ -69,26 +74,6 @@ sub get_default_options {
     );
 
     return %options;
-}
-
-=head2 show_help
-
-Accepts a package name and runs either C<<$package->usage>> or L<Pod::Usage>
-against it.
-
-=cut
-
-sub show_help {
-    my $package = shift;
-    if ($package->can('usage')) {
-        $package->usage;
-        exit 0;
-    }
-    
-    pod2usage({
-        -exitval => 0,
-        -verbose => 1,
-    });
 }
 
 =head2 read_stdin
