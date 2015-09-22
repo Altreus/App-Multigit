@@ -128,7 +128,8 @@ sub run {
                     $future->done(%details);
                 }
                 else {
-                    $future->fail("Child process exited with nonzero exit status", %details);
+                    $future->fail("Child process exited with nonzero exit status", 
+                        exit_nonzero => %details);
                 }
             }
         );

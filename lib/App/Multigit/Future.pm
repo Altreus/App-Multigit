@@ -43,8 +43,9 @@ sub finally {
         my $f = shift;
         my @result;
 
+
         if (@result = $f->failure) {
-            @result = @result[2, $#result];
+            @result = @result[2 .. $#result];
         }
         else {
             @result = $f->get;
