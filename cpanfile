@@ -9,6 +9,7 @@ requires "IO::Async" => "0.67";
 requires "IPC::Run" => "0";
 requires "Moo" => "2.000001";
 requires "Path::Class" => "0.35";
+requires "Pod::Usage";
 requires "Try::Tiny" => "0.22";
 requires "List::UtilsBy" => "0.09";
 
