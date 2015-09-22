@@ -56,38 +56,45 @@ my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";
 exec $mg_cmd, @ARGV
     or die "Failed to exec $mg_cmd: $!";
 
-sub usage {
-<<'EOU'
-Usage:
+=head1 SYNOPSIS
+
     mg [options] command [command-options]
     mg help [command]
 
 Runs mg-$command, which may or may not run something in each repository.
 
-`options` control the environment of mg itself; `command-options` control the
-specific command. Each command will accept its own set of options, so see `mg
-help $command` for those.
+C<options> control the environment of mg itself; C<command-options> control the
+specific command. Each command will accept its own set of options, so see 
+C<mg help $command> for those.
 
-Options:
+=head1 OPTIONS
 
-    -q 
-    --quiet
-        Repeatable option. First occurrence prevents reporting on repositories
-        that had no output; second occurrence stifles stdout from all streams
-        before applying the effect of the first occurrence.
+=over
 
-    -v
-    --verbose
-        Repeatable option. Every occurrence of -v will counteract an occurrence
-        of -q, so if you have some environment stuff going on you can override
-        it.
+=item -q 
 
-    --concurrent=N
-    -c N
-        Limit concurrency to N processes at once. This is often a good idea when
-        using `mg each` with a bunch of repositories that point to the same
-        server; if you cannot have more than N connections to the server, you
-        probably don't want to connect to it more than N times. That's when you
-        might use this.
-EOU
-}
+=item --quiet
+
+Repeatable option. First occurrence prevents reporting on repositories
+that had no output; second occurrence stifles stdout from all streams
+before applying the effect of the first occurrence.
+
+=item -v
+
+=item --verbose
+
+Repeatable option. Every occurrence of -v will counteract an occurrence
+of -q, so if you have some environment stuff going on you can override
+it.
+
+=item --concurrent=N
+
+=item -c N
+
+Limit concurrency to N processes at once. This is often a good idea when
+using `mg each` with a bunch of repositories that point to the same
+server; if you cannot have more than N connections to the server, you
+probably don't want to connect to it more than N times. That's when you
+might use this.
+
+=back

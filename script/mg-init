@@ -19,9 +19,8 @@ GetOptions(
 
 App::Multigit::init(getcwd);
 
-sub usage() {
-<<'EOU'
-Usage:
+=head1 SYNOPSIS
+
     mg init
 
 Creates or updates the .mgconfig in the current working directory by iterating
@@ -29,5 +28,3 @@ the subdirectories and assuming they are git repos.
 
 Except for the dir keys, all existing configuration will be maintained, if
 possible.
-EOU
-}

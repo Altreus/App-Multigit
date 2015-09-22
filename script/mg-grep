@@ -64,31 +64,38 @@ sub filter {
     }
 }
 
-sub usage() {
-<<'EOU'
-Usage:
-    mg grep COMMAND
+=head1 SYNOPSIS
+
+    mg-grep COMMAND
 
 Runs COMMAND in each repository and reports the path to the repository if
 COMMAND returned data on STDOUT.
 
-Options:
-    --absolute
-    --no-absolute
-        By default, the paths are output as absolute paths so it doesn't matter
-        where in the project you are. With --no-absolute, paths are output
-        relative to the mg root.
+=head1 OPTIONS
 
-    --debug, -d
-        If you're getting info you didn't expect, use debug mode to mimic 
-        `mg each`, i.e. to just report the results without filtering. Note that
-        this is subject to the -q and -v options to mg itself.
+=over
 
-    --exitcode, -e
-        Instead of STDOUT, use the exit code of the process to determine
-        success. Repositories with a zero exit code are reported.
+=item --absolute 
 
-    --invert, -v
-        Invert the logic so it reports the opposite set of repositories.
-EOU
-}
+=item --no-absolute
+
+By default, the paths are output as absolute paths so it doesn't matter where in
+the project you are. With --no-absolute, paths are output relative to the mg
+root.
+
+=item --debug, -d
+
+If you're getting info you didn't expect, use debug mode to mimic `mg each`,
+i.e. to just report the results without filtering. Note that this is subject to
+the -q and -v options to mg itself.
+
+=item --exitcode, -e
+
+Instead of STDOUT, use the exit code of the process to determine success.
+Repositories with a zero exit code are reported.
+
+=item --invert, -v
+
+Invert the logic so it reports the opposite set of repositories.
+
+=back

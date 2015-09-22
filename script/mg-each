@@ -22,12 +22,10 @@ for (sort keys %result) {
     say $_; say $result{$_};
 }
 
-sub usage() {
-<<EOU
-Usage:
+=head1 SYNOPSIS
     
     mg each [command]
 
 Runs `command` in each repository and reports the results.
-EOU
-}
+
+Use options to C<mg> itself to control the output.
