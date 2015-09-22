@@ -9,15 +9,14 @@ use File::Which qw(which);
 use Cwd qw(getcwd);
 use App::Multigit;
 use Getopt::Long qw(:config gnu_getopt require_order);
+use Pod::Usage;
 
 sub usage;
 
 {
     my $qs = 0;
     GetOptions(
-        help => sub {
-            say usage and exit;
-        },
+        help => \&usage,
         'quiet|q' => sub {
             # Can't use + for this because -v needs to counteract it.
             $qs++;
@@ -37,11 +36,11 @@ sub usage;
     }
 }
 
-my $cmd = shift or say usage and exit 1;
+my $cmd = shift or usage 1;
 
 if ($cmd eq 'help') {
     # mg help is just usage
-    $cmd = shift or say usage and exit 0;
+    $cmd = shift or usage;
 
     @ARGV = '--help';
 }
@@ -55,6 +54,11 @@ my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";
 
 exec $mg_cmd, @ARGV
     or die "Failed to exec $mg_cmd: $!";
+
+sub usage {
+    my $exitcode = shift // 0
+    pod2usage({ -exitcode => $exitcode, -verbose => 2 });
+}
 
 =head1 SYNOPSIS
 
