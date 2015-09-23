@@ -463,6 +463,7 @@ sub init {
             }
             catch {
                 warn $_;
+                0;
             }
         or next;
         $config{$url}->{dir} = $dir;
