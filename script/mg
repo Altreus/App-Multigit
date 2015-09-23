@@ -56,7 +56,7 @@ exec $mg_cmd, @ARGV
     or die "Failed to exec $mg_cmd: $!";
 
 sub usage {
-    my $exitcode = shift // 0
+    my $exitcode = shift // 0;
     pod2usage({ -exitcode => $exitcode, -verbose => 2 });
 }
 
