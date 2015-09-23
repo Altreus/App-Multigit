@@ -1,5 +1,10 @@
 {{ $NEXT }}
 
+0.11      2015-09-23 16:04:29 BST
+
+    - Fixed syntax error in mg script
+    - Fixed initing with non-git dirs
+
 0.10      2015-09-22 15:53:11 BST
 
     - Added support for selection of repos to work against
