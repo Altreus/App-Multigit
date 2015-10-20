@@ -17,6 +17,27 @@ GetOptions(
     },
 );
 
+my $config = shift;
+
+if ($config) {
+    if ($config =~ m{://}) {
+        mirror($config, mgconfig);
+    }
+    else {
+        copy($config, mgconfig);
+    }
+}
+
+if (eval { mg_parent }) {
+    my $all_repositories = all_repositories;
+
+    for my $config (values %$all_repositories) {
+        next if -e $config->{dir};
+
+        system qw(git clone), $config->{url};
+    }
+}
+
 App::Multigit::init(getcwd);
 
 =head1 SYNOPSIS
