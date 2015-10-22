@@ -37,7 +37,7 @@ GetOptions(
 my $future = mg_each(sub {
     my $repo = shift;
     $repo->run(\@ARGV)
-        ->then($options{debug} ? $repo->curry::report : filter($repo))
+        ->finally($options{debug} ? $repo->curry::report : filter($repo))
 });
 
 say for $future->get;
