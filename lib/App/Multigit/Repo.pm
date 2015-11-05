@@ -67,6 +67,10 @@ to the process's STDIN.
 A Future object is returned. When the command finishes, the Future is completed
 with a hash-shaped list identical to the one C<run> accepts.
 
+If an error occurs I<before> running the command (i.e. if IO::Async throws the
+error), it will behave as though an error occurred within the command, and
+C<exitcode> will be set to 255.
+
 =head3 data
 
 C<run> accepts a hash of data. If C<stdout> or C<stderr> are provided here, the
@@ -94,6 +98,17 @@ C<past_stdout> and C<past_stderr> are never used; they are provided for you to
 write any procedure you may require to concatenate new output with old. See
 C<gather>.
 
+=head3 IO::Async::Process
+
+The special key C<ia_config> to the C<%data> hash will be removed from the hash
+and used as configuration for the L<IO::Async::Process> object that powers the
+whole system.
+
+It currently supports the C<no_cd> option, to prevent attempting to C<chdir>
+into the repo's directory.
+
+  $repo->run($subref, ia_config => { no_cd => 1 });
+
 =cut
 
 sub run {
@@ -103,6 +118,7 @@ sub run {
     bless $future, 'App::Multigit::Future';
 
     $data{stdout} //= '';
+    my $ia_config = delete $data{ia_config};
 
     my $ignore_stdout = $App::Multigit::BEHAVIOUR{ignore_stdout};
     my $ignore_stderr = $App::Multigit::BEHAVIOUR{ignore_stderr};
@@ -129,23 +145,25 @@ sub run {
 
     try
     {
+        my $setup = [];
+        unless($ia_config->{no_cd}) {
+            $setup = [
+                chdir => $self->config->{dir}
+            ];
+        }
         if (ref $command eq 'CODE') {
             loop->run_child(
                 code => sub {
                     $command->($self, %data); 0;
                 },
-                setup => [
-                    chdir => $self->config->{dir}
-                ],
+                setup => $setup,
                 on_finish => $finish_code,
             );
         }
         else {
             loop->run_child(
                 command => $command,
-                setup => [
-                    chdir => $self->config->{dir}
-                ],
+                setup => $setup,
                 stdin => $data{stdout},
                 on_finish => $finish_code,
             )

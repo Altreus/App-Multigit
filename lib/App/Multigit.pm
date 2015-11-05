@@ -217,10 +217,12 @@ sub selected_repositories {
     return $selected_repos;
 }
 
-=head2 each($command)
+=head2 each($command[, $ia_config])
 
 For each configured repository, C<$command> will be run. Each command is run in
-a separate process which C<chdir>s into the repository first.
+a separate process which C<chdir>s into the repository first. Optionally, the
+C<$ia_config> hashref may be provided; this will be passed to
+L<App::Multigit::Repo/run>.
 
 It returns a convergent L<App::Multigit::Future> that represents all tasks. When
 this Future completes, all tasks are complete.
@@ -394,9 +396,10 @@ form is used.
 
 sub each {
     my $command = shift;
+    my $ia_config = shift;
     my $repos = selected_repositories;
 
-    my $f = fmap { _run_in_repo($command, $_[0], $repos->{$_[0]}) } 
+    my $f = fmap { _run_in_repo($command, $_[0], $repos->{$_[0]}, $ia_config) } 
         foreach => [ keys %$repos ],
         concurrent => $BEHAVIOUR{concurrent_processes},
     ;
@@ -415,7 +418,7 @@ This is the exported name of C<each>
 *mg_each = \&each;
 
 sub _run_in_repo {
-    my ($cmd, $repo, $config) = @_;
+    my ($cmd, $repo, $config, $ia_config) = @_;
 
     return App::Multigit::Future->done( $config->{dir} => "Readonly" )
         if $BEHAVIOUR{skip_readonly} and $config->{readonly};
@@ -424,7 +427,7 @@ sub _run_in_repo {
         App::Multigit::Repo->new(
             name => $repo,
             config => $config
-        )->run($cmd);
+        )->run($cmd, ia_config => $ia_config);
     }
     else {
         App::Multigit::Repo->new(
