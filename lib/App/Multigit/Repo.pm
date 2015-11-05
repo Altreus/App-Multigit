@@ -5,6 +5,7 @@ use IO::Async::Process;
 use Future;
 use Moo;
 use Cwd 'getcwd';
+use Try::Tiny;
 
 use 5.014;
 
@@ -106,62 +107,58 @@ sub run {
     my $ignore_stdout = $App::Multigit::BEHAVIOUR{ignore_stdout};
     my $ignore_stderr = $App::Multigit::BEHAVIOUR{ignore_stderr};
 
-    if (ref $command eq 'CODE') {
-        loop->run_child(
-            code => sub {
-                $command->($self, %data); 0;
-            },
-            setup => [
-                chdir => $self->config->{dir}
-            ],
-            on_finish => sub {
-                my (undef, $exitcode, $stdout, $stderr) = @_;
-                my %details = (
-                    stdout => $ignore_stdout ? '' : $stdout,
-                    stderr => $ignore_stderr ? '' : $stderr, 
-                    exitcode => $exitcode, 
-                    past_stdout => $ignore_stdout ? '' : $data{stdout},
-                    past_stderr => $ignore_stderr ? '' : $data{stderr},
-                );
-
-                if ($exitcode == 0) {
-                    $future->done(%details);
-                }
-                else {
-                    $future->fail("Child process exited with nonzero exit status", 
-                        exit_nonzero => %details);
-                }
-            }
+    my $finish_code = sub {
+        my (undef, $exitcode, $stdout, $stderr) = @_;
+        my %details = (
+            stdout => $ignore_stdout ? '' : $stdout,
+            stderr => $ignore_stderr ? '' : $stderr,
+            exitcode => $exitcode,
+            past_stdout => $ignore_stdout ? '' : $data{stdout},
+            past_stderr => $ignore_stderr ? '' : $data{stderr},
         );
-    }
-    else {
-        loop->run_child(
-            command => $command,
-            setup => [
-                chdir => $self->config->{dir}
-            ],
-            stdin => $data{stdout},
-            on_finish => sub {
-                my (undef, $exitcode, $stdout, $stderr) = @_;
-                my %details = (
-                    stdout => $ignore_stdout ? '' : $stdout,
-                    stderr => $ignore_stderr ? '' : $stderr,
-                    exitcode => $exitcode,
-                    past_stdout => $ignore_stdout ? '' : $data{stdout},
-                    past_stderr => $ignore_stderr ? '' : $data{stderr},
-                );
 
-                if ($exitcode == 0) {
-                    $future->done(%details);
-                }
-                else {
-                    $future->fail(
-                        "Child process exited with nonzero exit status",
-                        exit_nonzero => %details);
-                }
-            }
-        )
+        if ($exitcode == 0) {
+            $future->done(%details);
+        }
+        else {
+            $future->fail(
+                "Child process exited with nonzero exit status",
+                exit_nonzero => %details);
+        }
+    };
+
+    try
+    {
+        if (ref $command eq 'CODE') {
+            loop->run_child(
+                code => sub {
+                    $command->($self, %data); 0;
+                },
+                setup => [
+                    chdir => $self->config->{dir}
+                ],
+                on_finish => $finish_code,
+            );
+        }
+        else {
+            loop->run_child(
+                command => $command,
+                setup => [
+                    chdir => $self->config->{dir}
+                ],
+                stdin => $data{stdout},
+                on_finish => $finish_code,
+            )
+        }
     }
+    catch
+    {
+        # make failures coming from the Async code come out as an error
+        # relating to the repo as they probably are.
+        # rather than crashing the whole program hard.
+        # the common error case is the subdirectory for the module not existing.
+        $finish_code->(undef, 255, '', "Error running\n" . $_);
+    };
     return $future;
 }
 
