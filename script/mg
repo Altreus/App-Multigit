@@ -10,6 +10,7 @@ use Cwd qw(getcwd);
 use App::Multigit;
 use Getopt::Long qw(:config gnu_getopt require_order);
 use Pod::Usage;
+use Try::Tiny;
 
 sub usage;
 
@@ -45,9 +46,10 @@ if ($cmd eq 'help') {
     @ARGV = '--help';
 }
 else {
-    # init cannot know the mg_parent because there might not be one yet
-    unshift @ARGV, '--workdir', App::Multigit::mg_parent
-        unless $cmd eq 'init';
+    # mg-init may be run in a new mg, or in an existing one.
+    my @workdir = try { '--workdir', App::Multigit::mg_parent } catch {};
+
+    unshift @ARGV, @workdir;
 }
 
 my $mg_cmd = which("mg-$cmd") // die "$cmd is not an mg command.\n";

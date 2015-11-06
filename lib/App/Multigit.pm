@@ -21,8 +21,8 @@ use App::Multigit::Loop qw(loop);
 use Exporter 'import';
 
 our @EXPORT_OK = qw/
-    mgconfig mg_parent 
-    all_repositories selected_repositories 
+    mgconfig mg_parent
+    all_repositories selected_repositories
     base_branch set_base_branch mg_each
 /;
 
@@ -171,7 +171,7 @@ sub all_repositories {
 
 =head2 selected_repositories
 
-This returns the repository configuration as determined by 
+This returns the repository configuration as determined by
 L<C<<@SELECTED_REPOS>>|/@SELECTED_REPOS>. Directories that exist in the main
 config (L<all_repositories>) will have their configuration honoured, but unknown
 directories will have default configuration.
@@ -198,7 +198,7 @@ sub selected_repositories {
             $selected_repos->{ $bydir->{$dir}->{url} } = $bydir->{$dir};
         }
         else {
-            my $url = 
+            my $url =
                 try {
                     _sensible_remote_url($dir);
                 }
@@ -250,7 +250,7 @@ the C<< $future->get >> until all repositories have reported completion.
 See C<examples/mg-branch> for a simple implementation of this.
 
 The Future can complete with whatever you like, but be aware that C<run> returns
-a hash-shaped list; see the docs for 
+a hash-shaped list; see the docs for
 L<run|App::Multigit::Repo/"run($command, [%data])">. This means it is often
 useful for the very last thing in your subref to be a transformation - something
 that extracts data from the C<%data> hash and turns it into a usefully-shaped
@@ -371,7 +371,7 @@ success and discards the error information.
 In the arrayref form, the C<$command> is passed directly to C<run> in
 L<App::Multigit::Repo|App::Multigit::Repo/"run($command, [%data])">.  The
 Futures returned thus are collated and the list of return values is thus
-collated. 
+collated.
 
 Because L<run|App::Multigit::Repo/"run($command, [%data])"> completes a Future
 with a hash-shaped list, the convergent Future that C<each> returns will be a
@@ -399,7 +399,7 @@ sub each {
     my $ia_config = shift;
     my $repos = selected_repositories;
 
-    my $f = fmap { _run_in_repo($command, $_[0], $repos->{$_[0]}, $ia_config) } 
+    my $f = fmap { _run_in_repo($command, $_[0], $repos->{$_[0]}, $ia_config) }
         foreach => [ keys %$repos ],
         concurrent => $BEHAVIOUR{concurrent_processes},
     ;
@@ -459,7 +459,7 @@ sub mkconfig {
 
     # If it's already inited, we'll keep the config
     %config = try {
-        %{ all_repositories() }
+        %{ all_repositories($workdir) }
     } catch {};
 
     for my $dir (@dirs) {
@@ -473,9 +473,36 @@ sub mkconfig {
         or next;
         $config{$url}->{dir} = $dir;
     }
-    
+
     my $config_filename = dir($workdir)->file(mgconfig);
     Config::INI::Writer->write_file(\%config, $config_filename);
+}
+
+=head2 clean_config
+
+Checks the C<.mgconfig> for directories that don't exist and removes the associated repo section.
+
+=cut
+
+sub clean_config {
+    my $config = all_repositories;
+    my $workdir = shift // mg_parent;
+
+    for my $url (keys %$config) {
+        my $conf = $config->{$url};
+        my $dir = dir($conf->{dir});
+
+        if ($dir->is_relative) {
+            $dir = $dir->absolute($workdir);
+        }
+
+        unless (-e $dir) {
+            delete $config->{$url};
+        }
+    }
+
+    my $config_filename = $workdir->file(mgconfig);
+    Config::INI::Writer->write_file($config, $config_filename);
 }
 
 # Fetch either origin URL, or any URL. Dies if none.
