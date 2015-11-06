@@ -45,6 +45,7 @@
             "Getopt::Long" : "2.42",
             "IO::Async" : "0.67",
             "IPC::Run" : "0",
+            "LWP::Simple" : "0",
             "List::UtilsBy" : "0.09",
             "Moo" : "2.000001",
             "Path::Class" : "0.35",
@@ -58,23 +59,23 @@
    "provides" : {
       "App::Multigit" : {
          "file" : "lib/App/Multigit.pm",
-         "version" : "0.12"
+         "version" : "0.13"
       },
       "App::Multigit::Future" : {
          "file" : "lib/App/Multigit/Future.pm",
-         "version" : "0.12"
+         "version" : "0.13"
       },
       "App::Multigit::Loop" : {
          "file" : "lib/App/Multigit/Loop.pm",
-         "version" : "0.12"
+         "version" : "0.13"
       },
       "App::Multigit::Repo" : {
          "file" : "lib/App/Multigit/Repo.pm",
-         "version" : "0.12"
+         "version" : "0.13"
       },
       "App::Multigit::Script" : {
          "file" : "lib/App/Multigit/Script.pm",
-         "version" : "0.12"
+         "version" : "0.13"
       }
    },
    "release_status" : "stable",
@@ -89,10 +90,11 @@
          "web" : "https://github.com/Altreus/App-Multigit"
       }
    },
-   "version" : "0.12",
+   "version" : "0.13",
    "x_contributors" : [
       "Alastair McGowan-Douglas <alastair.mcgowan@opusvl.com>",
-      "Alastair McGowan-Douglas <altreus@altre.us>"
+      "Alastair McGowan-Douglas <altreus@altre.us>",
+      "Colin Newell <colin.newell@gmail.com>"
    ]
 }
 

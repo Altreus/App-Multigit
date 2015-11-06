@@ -33,6 +33,7 @@ my %WriteMakefileArgs = (
     "Getopt::Long" => "2.42",
     "IO::Async" => "0.67",
     "IPC::Run" => 0,
+    "LWP::Simple" => 0,
     "List::UtilsBy" => "0.09",
     "Moo" => "2.000001",
     "Path::Class" => "0.35",
@@ -40,7 +41,7 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => "0.22",
     "curry" => 1
   },
-  "VERSION" => "0.12",
+  "VERSION" => "0.13",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -57,6 +58,7 @@ my %FallbackPrereqs = (
   "Getopt::Long" => "2.42",
   "IO::Async" => "0.67",
   "IPC::Run" => 0,
+  "LWP::Simple" => 0,
   "List::UtilsBy" => "0.09",
   "Moo" => "2.000001",
   "Path::Class" => "0.35",

@@ -1,5 +1,16 @@
 {{ $NEXT }}
 
+0.13      2015-11-06 15:25:18 GMT
+
+    - mg-init has learned new tricks
+      * Clones missing repos
+        * or removes them from config
+      * Can remove repos rather than re-registering them
+      * Accepts file parameter to initialise from
+    - Underlying IO::Async::Process can be told not to chdir
+    - init is now called mkconfig
+    - Added clean_config function, which cleans the config
+
 0.12      2015-10-22 09:30:14 BST
 
     - Fixed mg-grep reporting an error when nonzero exit code is expected
