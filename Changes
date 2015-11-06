@@ -1,5 +1,13 @@
 {{ $NEXT }}
 
+0.14      2015-11-06 16:12:48 GMT
+
+    - Removed -R from mg-init - seemed bad on several levels
+    - Renamed --remove-missing to --remove-repos because ambiguity
+    - Error handling when IO::Async::Process itself fails (actually in 0.13 but
+      I forgot)
+    - Replaced LWP::Simple with HTTP::Tiny
+
 0.13      2015-11-06 15:25:18 GMT
 
     - mg-init has learned new tricks
