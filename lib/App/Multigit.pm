@@ -437,14 +437,16 @@ sub _run_in_repo {
     }
 }
 
-=head2 init($workdir)
+=head2 mkconfig($workdir)
 
-Scans C<$workdir> for git directories and registers each in C<.mgconfig>
+Scans C<$workdir> for git directories and registers each in C<.mgconfig>. If the
+config file already exists it will be appended to; existing config will be
+preserved where possible.
 
 =cut
 
-sub init {
-    my $workdir = shift;
+sub mkconfig {
+    my $workdir = shift // mg_parent;
     my @dirs = File::Find::Rule
         ->relative
         ->directory
