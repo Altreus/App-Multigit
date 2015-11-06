@@ -9,7 +9,7 @@ use Try::Tiny;
 
 use 5.014;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 =encoding utf8
 
