@@ -4,9 +4,11 @@ use warnings;
 use 5.014;
 
 use Getopt::Long qw(:config gnu_getopt);
-use App::Multigit qw(mgconfig mg_parent all_repositories);
+use App::Multigit qw(mgconfig mg_parent all_repositories mg_each);
 use App::Multigit::Script ();  # Avoid trying to get --workdir and chdir to it.
 use Future;
+use curry;
+
 use Cwd qw(getcwd);
 use File::Copy;
 use LWP::Simple;
@@ -51,15 +53,19 @@ catch {
 };
 
 if ($existing_mg) {
-    my $all_repositories = all_repositories;
+    my $f = mg_each(sub {
+        my $repo = shift;
+        return Future->done if -e $repo->config->{dir};
 
-    for my $config (values %$all_repositories) {
-        next if -e $config->{dir};
+        return Future->done
+            if $options{'update-only'}
+            or $options{clean};
 
-        system qw(git clone), $config->{url}
-            unless $options{'update-only'}
-                or $options{clean};
-    }
+        $repo->run([qw(git clone), $repo->config->{url}], ia_config => { no_cd => 1 })
+            ->finally($repo->curry::report)
+    });
+
+    say for $f->get;
 }
 
 # Create the config if we don't have one.
