@@ -19,7 +19,7 @@ my %options = App::Multigit::Script::get_default_options;
 GetOptions(\%options,
     'update-only|u',
     'clean|c',
-    'remove-missing|rm|R',
+    'remove-missing|rm',
 );
 
 die "update-only is not compatible with clean"
@@ -133,8 +133,6 @@ C<--clean> is incompatible with C<--update-only>.
 =head2 --remove-missing
 
 =head2 --rm
-
-=head2 -R
 
 Removes any directory not present in the config. Note that if there is no config
 yet, it will be created irrespective of this option; and thus this option will
