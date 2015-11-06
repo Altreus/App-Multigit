@@ -12,6 +12,7 @@ requires "Moo" => "2.000001";
 requires "Path::Class" => "0.35";
 requires "Pod::Usage";
 requires "Try::Tiny" => "0.22";
+requires "LWP::Simple";
 
 requires "curry" => "1";
 requires "perl" => "5.014";
