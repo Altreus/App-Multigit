@@ -8,6 +8,7 @@ use App::Multigit qw(mgconfig mg_parent all_repositories);
 use App::Multigit::Script ();  # Avoid trying to get --workdir and chdir to it.
 use Future;
 use Cwd qw(getcwd);
+use File::Copy;
 use LWP::Simple;
 use Path::Class;
 use Try::Tiny;
