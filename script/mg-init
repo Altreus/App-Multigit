@@ -19,7 +19,7 @@ my %options = App::Multigit::Script::get_default_options;
 GetOptions(\%options,
     'update-only|u',
     'clean|c',
-    'remove-missing|rm',
+    'remove-repos|rm',
 );
 
 die "update-only is not compatible with clean"
@@ -130,7 +130,7 @@ that we do not clone them first.
 
 C<--clean> is incompatible with C<--update-only>.
 
-=head2 --remove-missing
+=head2 --remove-repos
 
 =head2 --rm
 
