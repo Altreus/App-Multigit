@@ -11,7 +11,7 @@ use curry;
 
 use Cwd qw(getcwd);
 use File::Copy;
-use LWP::Simple;
+use HTTP::Tiny;
 use Path::Class;
 use Try::Tiny;
 
@@ -37,7 +37,7 @@ my $config = shift;
 
 if ($config) {
     if ($config =~ m{://}) {
-        mirror($config, mgconfig);
+        HTTP::Tiny->new->mirror($config, mgconfig);
     }
     else {
         copy($config, mgconfig);
