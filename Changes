@@ -1,5 +1,9 @@
 {{ $NEXT }}
 
+0.15      2015-11-09 14:35:27 GMT
+
+    - Fixed mg-init crashing when creating new .mgconfig from repositories in PWD
+
 0.14      2015-11-06 16:12:48 GMT
 
     - Removed -R from mg-init - seemed bad on several levels
