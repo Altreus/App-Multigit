@@ -49,7 +49,7 @@ my $existing_mg = try {
 }
 catch {
     die "Failed to initialise from $config.\n" if $config;
-    die "$_\n";
+    return;
 };
 
 if ($existing_mg) {
