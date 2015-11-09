@@ -5,7 +5,7 @@ use warnings;
 
 use base qw( IO::Async::Future );
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 =head1 NAME
 
