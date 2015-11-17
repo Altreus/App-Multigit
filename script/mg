@@ -103,4 +103,9 @@ server; if you cannot have more than N connections to the server, you
 probably don't want to connect to it more than N times. That's when you
 might use this.
 
+=item --skip-readonly
+
+Skip readonly repositories.  Repositories marked readonly = 1 in the .mgconfig
+will be ignored by whatever command you run.
+
 =back
