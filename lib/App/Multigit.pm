@@ -420,7 +420,7 @@ This is the exported name of C<each>
 sub _run_in_repo {
     my ($cmd, $repo, $config, $ia_config) = @_;
 
-    return App::Multigit::Future->done( $config->{dir} => "Readonly" )
+    return App::Multigit::Future->done
         if $BEHAVIOUR{skip_readonly} and $config->{readonly};
 
     if (ref $cmd eq 'ARRAY') {
