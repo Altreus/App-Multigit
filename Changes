@@ -1,5 +1,13 @@
 {{ $NEXT }}
 
+0.16      2015-12-10 12:30:21 GMT
+
+    - Readonly repos now produce no output at all if skipped
+    - mg init will now check out repos at the specified branch
+      [ssh://git/repo]
+      branch=feature-branch
+    - Fixed missing help docs
+
 0.15      2015-11-09 14:35:27 GMT
 
     - Fixed mg-init crashing when creating new .mgconfig from repositories in PWD
