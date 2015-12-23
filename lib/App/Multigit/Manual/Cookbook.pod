@@ -1,0 +1,16 @@
+=head1 NAME
+
+App::Multigit::Manual::Cookbook - examples of Multigit usage
+
+=head1 Get repos with basename matching a pattern with changes not pushed to origin/master
+
+    $ ( cd "$(mg root)" && mg each | grep MySubString | mg -q each git log origin/master..HEAD )
+
+Sample output:
+
+    MyProject-docker
+	commit d85820fffc8160dc076242e022aa9abcf59156a1
+	Author: Nick Booker <nick.booker@opusvl.com>
+	Date:   Tue Dec 22 15:58:15 2015 +0000
+	
+	    Started adding MyProject-flobble script
