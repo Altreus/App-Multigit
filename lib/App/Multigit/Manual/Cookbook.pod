@@ -10,7 +10,7 @@ Sample output:
 
     MyProject-docker
 	commit d85820fffc8160dc076242e022aa9abcf59156a1
-	Author: Nick Booker <nick.booker@opusvl.com>
+	Author: Fred Bloggs <fred.bloggs@example.com>
 	Date:   Tue Dec 22 15:58:15 2015 +0000
 	
 	    Started adding MyProject-flobble script
