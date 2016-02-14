@@ -480,6 +480,8 @@ sub mkconfig {
 
 =head2 write_config
 
+Write a .mgconfig configuration file.
+
 =cut
 
 sub write_config
