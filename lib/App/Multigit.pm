@@ -24,6 +24,7 @@ our @EXPORT_OK = qw/
     mgconfig mg_parent
     all_repositories selected_repositories
     base_branch set_base_branch mg_each
+    write_config
 /;
 
 =head1 NAME
@@ -474,8 +475,19 @@ sub mkconfig {
         $config{$url}->{dir} = $dir;
     }
 
+    write_config(\%config, $workdir);
+}
+
+=head2 write_config
+
+=cut
+
+sub write_config
+{
+    my $config = shift;
+    my $workdir = shift // mg_parent;
     my $config_filename = dir($workdir)->file(mgconfig);
-    Config::INI::Writer->write_file(\%config, $config_filename);
+    Config::INI::Writer->write_file($config, $config_filename);
 }
 
 =head2 clean_config
