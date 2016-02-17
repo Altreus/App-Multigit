@@ -9,6 +9,7 @@ use App::Multigit qw(mg_each);
 use App::Multigit::Script;
 use Path::Class;
 use Future;
+use curry;
 
 our %TESTS = (
     stdout => sub {
