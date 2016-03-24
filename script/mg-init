@@ -36,7 +36,11 @@ $options{workdir} = dir($options{workdir});
 my $config = shift;
 
 if ($config) {
-    if ($config =~ m{://}) {
+    if($config eq '-') {
+        # read updated config from stdout
+        copy(\*STDIN, mgconfig);
+    }
+    elsif ($config =~ m{://}) {
         HTTP::Tiny->new->mirror($config, mgconfig);
     }
     else {
@@ -105,7 +109,7 @@ App::Multigit::clean_config($options{workdir})
     mg init [--update-only|u] [--clean|c] [--remove-missing|--rm|-R] [FILE]
 
 With FILE, creates a .mgconfig with the contents of FILE. FILE may be a local
-file or a URL; the script will try to get it if it can.
+file, a URL or stdin (indicated with -); the script will try to get it if it can.
 
 Any existing .mgconfig file will be overwritten.
 
