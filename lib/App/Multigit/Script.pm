@@ -7,7 +7,7 @@ use 5.014;
 use Getopt::Long qw(:config gnu_getopt pass_through require_order);
 use Pod::Usage qw(pod2usage);
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 =head1 NAME
 
