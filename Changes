@@ -1,5 +1,10 @@
 {{ $NEXT }}
 
+0.17      2016-03-29 11:33:31 BST
+
+    - Fixed derp
+    - mg init can now accept .mgconfig from STDIN
+
 0.16      2015-12-10 12:30:21 GMT
 
     - Readonly repos now produce no output at all if skipped
