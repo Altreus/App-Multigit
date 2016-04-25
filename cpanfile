@@ -13,11 +13,8 @@ requires "Path::Class" => "0.35";
 requires "Pod::Usage";
 requires "Try::Tiny" => "0.22";
 requires "HTTP::Tiny";
-requires "JSON::MaybeXS";
 
 requires "curry" => "1";
 requires "perl" => "5.014";
 
-on 'configure' => sub {
-  requires "ExtUtils::MakeMaker" => "0";
-};
+recommends "JSON::MaybeXS";
