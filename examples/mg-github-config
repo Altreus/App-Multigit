@@ -75,12 +75,12 @@ write_config({ %existing_config, %config });
 
 =head1 SYNOPSIS
 
-    mg github-config [--readonly] [username]
+    mg github-config [--readonly] username
 
-Create a .mgconfig file for the github user.
+Create a .mgconfig file for the github user I<username>.
 
 =head1 OPTIONS
 
 =head2 --readonly
 
-Use the readonly github urls.
+Use the readonly (https) github URLs.
