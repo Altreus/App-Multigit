@@ -86,6 +86,7 @@ our %BEHAVIOUR = (
     ignore_stderr       => !!$ENV{MG_IGNORE_STDERR},
     concurrent          => $ENV{MG_CONCURRENT_PROCESSES} // 20,
     skip_readonly       => !!$ENV{MG_SKIP_READONLY},
+    output_only         => !!$ENV{MG_OUTPUT_ONLY},
 );
 
 =head2 @SELECTED_REPOS

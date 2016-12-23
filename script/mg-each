@@ -19,7 +19,8 @@ my %result = mg_each(
 ->get;
 
 for (sort keys %result) {
-    say $_; say $result{$_};
+    say $_ unless $App::Multigit::BEHAVIOUR{output_only};
+    say $result{$_};
 }
 
 =head1 SYNOPSIS

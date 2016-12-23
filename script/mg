@@ -27,6 +27,7 @@ sub usage;
         },
         'concurrent|c=i' => \$ENV{MG_CONCURRENT_PROCESSES},
         'skip-readonly' => \$ENV{MG_SKIP_READONLY},
+        'output-only|o' => \$ENV{MG_OUTPUT_ONLY},
     );
 
     if ($qs > 0) {
