@@ -274,6 +274,10 @@ Scans C<$workdir> for git directories and registers each in C<.mgconfig>. If the
 config file already exists it will be appended to; existing config will be
 preserved where possible.
 
+=head2 write_config
+
+Write a .mgconfig configuration file.
+
 =head2 clean_config
 
 Checks the C<.mgconfig> for directories that don't exist and removes the associated repo section.
