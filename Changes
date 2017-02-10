@@ -1,5 +1,14 @@
 {{ $NEXT }}
 
+0.18      2017-02-10 15:01:38 GMT
+
+    - Added write_config, an exportable function to write the config from a
+      hashref.
+    - Added github example to create mgconfig from github user
+    - Added -o, to not print repo names
+    - Added mg-st for summary of statuses
+    - Added mg-env, currently only supporting PATH and PERL5LIB
+
 0.17      2016-03-29 11:33:31 BST
 
     - Fixed derp
