@@ -34,7 +34,7 @@ deal with git subrepositories.
 
 =cut
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 PACKAGE VARS
 
